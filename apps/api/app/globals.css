@@ -627,3 +627,69 @@ body {
   background: var(--sol-green);
   transition: width 0.35s ease;
 }
+
+/* Risk Flag Pills & History Evolution (Web Preview) */
+.risk-flags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.risk-flag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}
+
+.history-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .history-kpis {
+    grid-template-columns: 1fr;
+  }
+}
+
+.score-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 108px;
+  padding-top: 12px;
+}
+
+.score-bar-col {
+  flex: 1;
+  max-width: 44px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-bar-track {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  width: 100%;
+  border-radius: 5px;
+  transition: height 0.35s ease;
+}

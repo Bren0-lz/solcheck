@@ -15,6 +15,7 @@ import { TokenAccountRow } from "../src/components/TokenAccountRow";
 import { VaultCard } from "../src/components/VaultCard";
 import { useSolCheck } from "../src/context/AppContext";
 import { solcheckApi } from "../src/services/api";
+import { formatWalletOrRpcError } from "../src/solana/errors";
 import {
   buildReclaimOnlyTransaction,
   MAX_ACCOUNTS_PER_BATCH,
@@ -23,6 +24,7 @@ import {
   buildAtomicReclaimAndVaultTransaction,
   buildDepositIx,
   buildInitializeVaultIx,
+  buildUpdateGoalIx,
   buildWithdrawIx,
 } from "../src/solana/vaultClient";
 import { signAndSendMobileTransaction } from "../src/solana/wallet";
@@ -30,7 +32,7 @@ import { COLORS } from "../src/theme";
 import { VaultActionType } from "../src/types/api";
 
 export default function VaultScreen() {
-  const { t, walletAddress, scanData, refreshScan } = useSolCheck();
+  const { lang, t, walletAddress, scanData, refreshScan } = useSolCheck();
 
   const [selectedPubkeys, setSelectedPubkeys] = useState<Set<string>>(
     new Set()
@@ -39,7 +41,6 @@ export default function VaultScreen() {
   const [txError, setTxError] = useState<string | null>(null);
   const [lastTxSig, setLastTxSig] = useState<string | null>(null);
 
-  // Select up to MAX_ACCOUNTS_PER_BATCH (10) empty accounts by default whenever scanData updates
   useEffect(() => {
     if (!scanData) {
       setSelectedPubkeys(new Set());
@@ -133,9 +134,7 @@ export default function VaultScreen() {
         solAmount: lamports / LAMPORTS_PER_SOL,
       });
     } catch (err) {
-      setTxError(
-        err instanceof Error ? err.message : "Transaction cancelled or failed."
-      );
+      setTxError(formatWalletOrRpcError(err, lang));
     } finally {
       setTxBusy(false);
     }
@@ -173,9 +172,7 @@ export default function VaultScreen() {
         solAmount: reclaimedLamports / LAMPORTS_PER_SOL,
       });
     } catch (err) {
-      setTxError(
-        err instanceof Error ? err.message : "Atomic transaction failed."
-      );
+      setTxError(formatWalletOrRpcError(err, lang));
     } finally {
       setTxBusy(false);
     }
@@ -198,9 +195,30 @@ export default function VaultScreen() {
       setLastTxSig(signature);
       await refreshScan();
     } catch (err) {
-      setTxError(
-        err instanceof Error ? err.message : "Vault creation failed."
+      setTxError(formatWalletOrRpcError(err, lang));
+    } finally {
+      setTxBusy(false);
+    }
+  }
+
+  async function handleUpdateGoal(goalName: string, targetSol: number) {
+    setTxBusy(true);
+    setTxError(null);
+    setLastTxSig(null);
+
+    try {
+      const targetLamports = BigInt(Math.round(targetSol * LAMPORTS_PER_SOL));
+      const { signature } = await signAndSendMobileTransaction(
+        async (signer) => {
+          const ix = buildUpdateGoalIx(signer, goalName, targetLamports);
+          return new Transaction().add(ix);
+        }
       );
+
+      setLastTxSig(signature);
+      await refreshScan();
+    } catch (err) {
+      setTxError(formatWalletOrRpcError(err, lang));
     } finally {
       setTxBusy(false);
     }
@@ -227,7 +245,7 @@ export default function VaultScreen() {
         solAmount,
       });
     } catch (err) {
-      setTxError(err instanceof Error ? err.message : "Deposit failed.");
+      setTxError(formatWalletOrRpcError(err, lang));
     } finally {
       setTxBusy(false);
     }
@@ -254,7 +272,7 @@ export default function VaultScreen() {
         solAmount,
       });
     } catch (err) {
-      setTxError(err instanceof Error ? err.message : "Withdrawal failed.");
+      setTxError(formatWalletOrRpcError(err, lang));
     } finally {
       setTxBusy(false);
     }
@@ -355,6 +373,7 @@ export default function VaultScreen() {
           t={t.vault}
           busy={txBusy}
           onCreateVault={handleCreateVault}
+          onUpdateGoal={handleUpdateGoal}
           onDeposit={handleVaultDeposit}
           onWithdraw={handleVaultWithdraw}
         />

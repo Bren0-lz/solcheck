@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { DICTIONARIES, Dictionary } from "../i18n";
 import { solcheckApi } from "../services/api";
+import { formatWalletOrRpcError } from "../solana/errors";
 import {
   connectMobileWallet,
   disconnectMobileWallet,
@@ -256,13 +257,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setWalletAddress(address);
       await refreshScan(address);
     } catch (err) {
-      setLastError(
-        err instanceof Error ? err.message : "Wallet connection cancelled."
-      );
+      setLastError(formatWalletOrRpcError(err, lang));
     } finally {
       setConnecting(false);
     }
-  }, [refreshScan]);
+  }, [lang, refreshScan]);
 
   const disconnect = useCallback(async () => {
     await stopVoiceBriefing();
