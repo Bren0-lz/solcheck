@@ -1,0 +1,25 @@
+{
+  "name": "solcheck-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SolCheck — AI Wallet Advisor, Rent Reclaim & Non-Custodial Savings Vault on Solana Mobile",
+  "license": "MIT",
+  "scripts": {
+    "seed:dirty-wallet": "tsx scripts/seed-dirty-wallet.ts",
+    "dev:api": "npm --prefix apps/api run dev",
+    "build:api": "npm --prefix apps/api run build",
+    "typecheck:api": "npm --prefix apps/api run typecheck",
+    "typecheck:mobile": "npm --prefix apps/mobile run typecheck",
+    "typecheck:scripts": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "npm run typecheck:scripts && npm run typecheck:api && npm run typecheck:mobile"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "1.98.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
