@@ -1,0 +1,104 @@
+name: Build Android APK (Solana Mobile)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "Production Vercel API URL (EXPO_PUBLIC_API_BASE_URL)"
+        required: false
+        type: string
+      vault_program_id:
+        description: "Deployed Anchor Vault Program ID on Devnet (EXPO_PUBLIC_VAULT_PROGRAM_ID)"
+        required: false
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Expo Prebuild & Gradle AssembleRelease APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('apps/mobile/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Install mobile dependencies
+        working-directory: apps/mobile
+        run: npm install --legacy-peer-deps
+
+      - name: Configure mobile environment variables
+        working-directory: apps/mobile
+        env:
+          INPUT_API_URL: ${{ inputs.api_base_url }}
+          VAR_API_URL: ${{ vars.EXPO_PUBLIC_API_BASE_URL }}
+          INPUT_VAULT_ID: ${{ inputs.vault_program_id }}
+          VAR_VAULT_ID: ${{ vars.EXPO_PUBLIC_VAULT_PROGRAM_ID }}
+          VAR_RPC_URL: ${{ vars.EXPO_PUBLIC_SOLANA_RPC_URL }}
+        run: |
+          API_URL="${INPUT_API_URL:-${VAR_API_URL:-https://solcheck.vercel.app}}"
+          VAULT_ID="${INPUT_VAULT_ID:-${VAR_VAULT_ID:-11111111111111111111111111111111}}"
+          RPC_URL="${VAR_RPC_URL:-https://api.devnet.solana.com}"
+          cat <<EOF > .env
+          EXPO_PUBLIC_API_BASE_URL=${API_URL}
+          EXPO_PUBLIC_SOLANA_CLUSTER=devnet
+          EXPO_PUBLIC_SOLANA_RPC_URL=${RPC_URL}
+          EXPO_PUBLIC_VAULT_PROGRAM_ID=${VAULT_ID}
+          EOF
+
+      - name: Run Expo Android native prebuild
+        working-directory: apps/mobile
+        env:
+          CI: "1"
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build release Android APK with Gradle
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Copy APK artifact
+        run: |
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk solcheck-android.apk
+          ls -lh solcheck-android.apk
+
+      - name: Upload installable APK to Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: solcheck-android-apk
+          path: solcheck-android.apk
+          retention-days: 30
+
+      - name: Attach APK to GitHub Release (when triggered by v* tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: solcheck-android.apk
+          generate_release_notes: true
