@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "SolCheck",
+    "slug": "solcheck",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "solcheck",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
+    "backgroundColor": "#0B0D14",
+    "splash": {
+      "backgroundColor": "#0B0D14"
+    },
+    "android": {
+      "package": "com.breno.solcheck",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0D14"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
