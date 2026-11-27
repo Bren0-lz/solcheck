@@ -1,0 +1,18 @@
+export const COLORS = {
+  bgPrimary: "#0B0D14",
+  bgCard: "#141824",
+  bgSubtle: "#0E121C",
+  borderSubtle: "#23293D",
+  borderStrong: "#323B56",
+  textPrimary: "#F3F6FC",
+  textSecondary: "#9BA4BE",
+  textMuted: "#69738F",
+  solanaGreen: "#14F195",
+  solanaGreenDim: "rgba(20, 241, 149, 0.14)",
+  solanaPurple: "#9945FF",
+  solanaPurpleDim: "rgba(153, 69, 255, 0.16)",
+  amber: "#F59E0B",
+  amberDim: "rgba(245, 158, 11, 0.16)",
+  red: "#EF4444",
+  redDim: "rgba(239, 68, 68, 0.16)",
+} as const;
