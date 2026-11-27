@@ -1,6 +1,6 @@
 import * as Linking from "expo-linking";
-import { Vault } from "lucide-react-native";
-import React, { useState } from "react";
+import { Pencil, Vault, X } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -18,6 +18,7 @@ interface VaultCardProps {
   t: Dictionary["vault"];
   busy: boolean;
   onCreateVault: (goalName: string, targetSol: number) => Promise<void>;
+  onUpdateGoal: (goalName: string, targetSol: number) => Promise<void>;
   onDeposit: (solAmount: number) => Promise<void>;
   onWithdraw: (solAmount: number) => Promise<void>;
 }
@@ -27,16 +28,25 @@ export function VaultCard({
   t,
   busy,
   onCreateVault,
+  onUpdateGoal,
   onDeposit,
   onWithdraw,
 }: VaultCardProps) {
   const [goalName, setGoalName] = useState("SOL Reserve");
   const [targetSolInput, setTargetSolInput] = useState("1.0");
   const [amountInput, setAmountInput] = useState("0.05");
+  const [editingGoal, setEditingGoal] = useState(false);
 
   const currentSol = vault.currentLamports / 1e9;
   const targetSol = vault.targetLamports / 1e9;
   const reclaimedSol = vault.totalReclaimedRoutedLamports / 1e9;
+
+  useEffect(() => {
+    if (vault.initialized && vault.goalName) {
+      setGoalName(vault.goalName);
+      setTargetSolInput(targetSol > 0 ? String(targetSol) : "1.0");
+    }
+  }, [vault.initialized, vault.goalName, targetSol]);
 
   return (
     <View style={styles.card}>
@@ -45,6 +55,23 @@ export function VaultCard({
           <Vault size={18} color={COLORS.solanaGreen} />
           <Text style={styles.title}>{t.vaultSectionTitle}</Text>
         </View>
+
+        {vault.initialized && (
+          <TouchableOpacity
+            style={styles.editToggleBtn}
+            disabled={busy}
+            onPress={() => setEditingGoal((prev) => !prev)}
+          >
+            {editingGoal ? (
+              <X size={13} color={COLORS.textSecondary} />
+            ) : (
+              <Pencil size={13} color={COLORS.solanaGreen} />
+            )}
+            <Text style={styles.editToggleText}>
+              {editingGoal ? t.cancelEditBtn : t.editGoalBtn}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {!vault.initialized ? (
@@ -92,19 +119,63 @@ export function VaultCard({
         </View>
       ) : (
         <View style={styles.formStack}>
-          <View style={styles.goalHeader}>
-            <Text style={styles.goalName}>{vault.goalName}</Text>
-            <Text style={styles.goalPercent}>{vault.progressPercent}%</Text>
-          </View>
+          {editingGoal ? (
+            <View style={styles.editFormBox}>
+              <View>
+                <Text style={styles.label}>{t.goalNameLabel}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={goalName}
+                  onChangeText={setGoalName}
+                  maxLength={32}
+                  placeholder={t.goalNamePlaceholder}
+                  placeholderTextColor={COLORS.textMuted}
+                />
+              </View>
 
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${Math.min(100, vault.progressPercent)}%` },
-              ]}
-            />
-          </View>
+              <View>
+                <Text style={styles.label}>{t.targetSolLabel}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={targetSolInput}
+                  onChangeText={setTargetSolInput}
+                  keyboardType="decimal-pad"
+                  placeholder="1.0"
+                  placeholderTextColor={COLORS.textMuted}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.primaryBtn, busy && styles.disabledBtn]}
+                disabled={busy}
+                onPress={async () => {
+                  const parsed = Number(targetSolInput.replace(",", "."));
+                  if (Number.isFinite(parsed) && parsed > 0) {
+                    await onUpdateGoal(goalName, parsed);
+                    setEditingGoal(false);
+                  }
+                }}
+              >
+                <Text style={styles.primaryBtnText}>{t.saveGoalBtn}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.goalHeader}>
+                <Text style={styles.goalName}>{vault.goalName}</Text>
+                <Text style={styles.goalPercent}>{vault.progressPercent}%</Text>
+              </View>
+
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min(100, vault.progressPercent)}%` },
+                  ]}
+                />
+              </View>
+            </>
+          )}
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
@@ -191,16 +262,43 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
   },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    flex: 1,
   },
   title: {
     fontSize: 15,
     fontWeight: "700",
     color: COLORS.textPrimary,
+    flexShrink: 1,
+  },
+  editToggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: COLORS.bgSubtle,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  editToggleText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: COLORS.textSecondary,
+  },
+  editFormBox: {
+    gap: 10,
+    backgroundColor: COLORS.bgSubtle,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
   },
   formStack: {
     gap: 12,

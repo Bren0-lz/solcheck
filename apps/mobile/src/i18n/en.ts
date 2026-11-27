@@ -60,6 +60,9 @@ export const en = {
     goalNamePlaceholder: "e.g. SOL Reserve",
     targetSolLabel: "Target Amount (SOL)",
     createVaultBtn: "Create On-Chain Vault",
+    editGoalBtn: "Edit Goal",
+    saveGoalBtn: "Save Updated Goal",
+    cancelEditBtn: "Cancel",
     currentSaved: "Saved Balance",
     reclaimedRouted: "From Rent Reclaim",
     depositPlaceholder: "Amount in SOL (e.g. 0.05)",
@@ -85,85 +88,4 @@ export const en = {
   },
 };
 
-export type Dictionary = {
-  appName: string;
-  appSubtitle: string;
-  connectBtn: string;
-  connectingBtn: string;
-  disconnectBtn: string;
-  devnetBadge: string;
-  tabs: {
-    xray: string;
-    advisor: string;
-    vault: string;
-    history: string;
-  };
-  status: {
-    healthy: string;
-    needs_attention: string;
-    leaking_value: string;
-  };
-  xray: {
-    refresh: string;
-    scanning: string;
-    solBalance: string;
-    healthScore: string;
-    lockedTitle: string;
-    lockedDesc: string;
-    cleanTitle: string;
-    cleanDesc: string;
-    reclaimCta: string;
-    vaultSummaryTitle: string;
-    createGoalCta: string;
-    playBriefingMini: string;
-    stopBriefingMini: string;
-  };
-  advisor: {
-    title: string;
-    voiceTitle: string;
-    poweredByEleven: string;
-    playBtn: string;
-    pauseBtn: string;
-    loadingVoice: string;
-    insightsTitle: string;
-    liveSourcesTitle: string;
-    refreshLiveBtn: string;
-    analyzing: string;
-    quickQuestionsTitle: string;
-    questions: string[];
-  };
-  vault: {
-    reclaimSectionTitle: string;
-    selectBatchHint: string;
-    noEmptyAccounts: string;
-    reclaimOnlyBtn: string;
-    reclaimAndVaultBtn: string;
-    vaultSectionTitle: string;
-    goalNameLabel: string;
-    goalNamePlaceholder: string;
-    targetSolLabel: string;
-    createVaultBtn: string;
-    currentSaved: string;
-    reclaimedRouted: string;
-    depositPlaceholder: string;
-    depositBtn: string;
-    withdrawBtn: string;
-    viewExplorer: string;
-    txSuccessTitle: string;
-    openTxExplorer: string;
-  };
-  history: {
-    title: string;
-    totalReclaimed: string;
-    accountsClosed: string;
-    scansRun: string;
-    scoreEvolution: string;
-    txLogTitle: string;
-    noEvents: string;
-    languageLabel: string;
-  };
-  common: {
-    connectPrompt: string;
-    signingTx: string;
-  };
-};
+export type Dictionary = typeof en;

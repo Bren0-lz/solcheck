@@ -3,20 +3,22 @@
 import React, { useRef, useState } from "react";
 import {
   Activity,
+  Clock,
   Download,
   ExternalLink,
   RefreshCw,
   ShieldCheck,
   Smartphone,
   Sparkles,
+  Square,
   Vault,
   Volume2,
-  Square,
 } from "lucide-react";
 import type {
   AnalyzeResponse,
   AppLang,
   BriefingResponse,
+  HistoryResponse,
   ScanResponse,
   SolanaCluster,
 } from "@/lib/types";
@@ -35,7 +37,8 @@ const COPY = {
     scanBtn: "Run Wallet X-Ray",
     scanningBtn: "Scanning RPC...",
     tryDemoBtn: "Try Demo Wallet",
-    clusterHint: "100% Non-Custodial · Public on-chain read · Sign on Solana Mobile (MWA)",
+    clusterHint:
+      "100% Non-Custodial · Public on-chain read · Sign on Solana Mobile (MWA)",
     healthTitle: "On-Chain Wallet X-Ray",
     solBalance: "SOL Balance",
     activeTokens: "Active SPL Tokens",
@@ -65,6 +68,11 @@ const COPY = {
     vaultTitle: "Anchor Savings Goal Vault (PDA)",
     vaultUninitialized: "Not initialized yet for this wallet",
     emptyTableTitle: "Closable Zero-Balance SPL Accounts",
+    historyTitle: "Supabase Snapshot History & Score Evolution",
+    totalReclaimed: "Total SOL Reclaimed",
+    accountsClosed: "Empty Accounts Closed",
+    scansRun: "Scans Recorded",
+    noEventsYet: "No on-chain reclaim/vault transactions logged for this wallet yet.",
   },
   pt: {
     subtitle: "Consultor de IA, Resgate de Rent & Cofre de Metas no Solana Mobile",
@@ -76,7 +84,8 @@ const COPY = {
     scanBtn: "Executar Raio-X",
     scanningBtn: "Lendo Blockchain...",
     tryDemoBtn: "Testar Carteira Demo",
-    clusterHint: "100% Não-Custodial · Leitura pública on-chain · Assinatura via Solana Mobile (MWA)",
+    clusterHint:
+      "100% Não-Custodial · Leitura pública on-chain · Assinatura via Solana Mobile (MWA)",
     healthTitle: "Raio-X On-Chain da Carteira",
     solBalance: "Saldo em SOL",
     activeTokens: "Tokens SPL Ativos",
@@ -106,6 +115,11 @@ const COPY = {
     vaultTitle: "Cofre de Metas On-Chain (Anchor PDA)",
     vaultUninitialized: "Ainda não inicializado para esta carteira",
     emptyTableTitle: "Contas SPL Vazias Prontas para Resgate",
+    historyTitle: "Histórico Supabase & Evolução do Health Score",
+    totalReclaimed: "Total de SOL Resgatado",
+    accountsClosed: "Contas Vazias Fechadas",
+    scansRun: "Scans Registrados",
+    noEventsYet: "Nenhuma transação de resgate/cofre registrada para esta carteira ainda.",
   },
 } as const;
 
@@ -122,6 +136,7 @@ export default function SolCheckWebPreviewPage() {
   );
   const [scanData, setScanData] = useState<ScanResponse | null>(null);
   const [analysis, setAnalysis] = useState<AnalyzeResponse | null>(null);
+  const [historyData, setHistoryData] = useState<HistoryResponse | null>(null);
   const [scanning, setScanning] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
@@ -150,6 +165,20 @@ export default function SolCheckWebPreviewPage() {
       window.speechSynthesis.cancel();
     }
     setIsPlaying(false);
+  }
+
+  async function fetchHistory(walletAddr: string, targetCluster: SolanaCluster) {
+    try {
+      const res = await fetch(
+        `/api/history?wallet=${encodeURIComponent(walletAddr)}&cluster=${targetCluster}`
+      );
+      if (res.ok) {
+        const json = (await res.json()) as HistoryResponse;
+        setHistoryData(json);
+      }
+    } catch {
+      // Non-critical in web preview
+    }
   }
 
   async function runAnalysis(
@@ -209,7 +238,10 @@ export default function SolCheckWebPreviewPage() {
         throw new Error(data.error || "Failed to scan wallet.");
       }
       setScanData(data);
-      await runAnalysis(data, lang);
+      await Promise.all([
+        runAnalysis(data, lang),
+        fetchHistory(data.walletAddress, data.cluster),
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Scan failed.");
     } finally {
@@ -258,7 +290,6 @@ export default function SolCheckWebPreviewPage() {
         return;
       }
 
-      // Fallback to browser SpeechSynthesis only if ELEVENLABS_API_KEY is unconfigured in dev
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         setUsedFallbackSpeech(true);
         const utter = new SpeechSynthesisUtterance(analysis.voiceScript);
@@ -293,6 +324,10 @@ export default function SolCheckWebPreviewPage() {
       : scanData.status === "needs_attention"
         ? "#F59E0B"
         : "#EF4444";
+
+  const orderedSnapshots = historyData
+    ? [...historyData.snapshots].reverse()
+    : [];
 
   return (
     <div className="page-shell">
@@ -398,9 +433,7 @@ export default function SolCheckWebPreviewPage() {
 
             <div className="scanner-footer">
               <span>{t.clusterHint}</span>
-              <span className="mono">
-                Demo: {shortenAddress(demoWallet)}
-              </span>
+              <span className="mono">Demo: {shortenAddress(demoWallet)}</span>
             </div>
           </div>
 
@@ -413,8 +446,11 @@ export default function SolCheckWebPreviewPage() {
 
         {scanData && (
           <section className="results-grid" aria-live="polite">
-            {/* Left Column: Health Score + Metrics + Vault */}
-            <div className="col-5" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Left Column: Health Score + Risk Flags + Metrics + Vault */}
+            <div
+              className="col-5"
+              style={{ display: "flex", flexDirection: "column", gap: 20 }}
+            >
               <div className="panel">
                 <div className="panel-header">
                   <span className="panel-title">
@@ -460,30 +496,60 @@ export default function SolCheckWebPreviewPage() {
                       />
                     </svg>
                     <div className="gauge-center">
-                      <span className="gauge-score mono" style={{ color: gaugeColor }}>
+                      <span
+                        className="gauge-score mono"
+                        style={{ color: gaugeColor }}
+                      >
                         {scanData.healthScore}
                       </span>
                       <span className="gauge-max mono">/ 100</span>
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
                     <span className={`status-badge status-${scanData.status}`}>
                       ● {t[scanData.status]}
                     </span>
-                    <div className="mono" style={{ fontSize: "1.35rem", fontWeight: 700 }}>
+                    <div
+                      className="mono"
+                      style={{ fontSize: "1.35rem", fontWeight: 700 }}
+                    >
                       {scanData.solBalance.toFixed(4)} SOL
                     </div>
-                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                    <span
+                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
+                    >
                       {scanData.cluster.toUpperCase()}
                     </span>
                   </div>
                 </div>
 
+                {scanData.riskFlags.length > 0 && (
+                  <div className="risk-flags-wrap">
+                    {scanData.riskFlags.map((flag, i) => (
+                      <span key={i} className="risk-flag-pill">
+                        <span className={`sev-pill sev-${flag.severity}`}>
+                          {flag.code.replace(/_/g, " ")}
+                        </span>
+                        <span
+                          className="mono"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          {flag.value}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 <div className="metric-list">
                   <div className="metric-item">
                     <div className="metric-label">{t.emptyAtas}</div>
-                    <div className="metric-value mono">{scanData.emptyAccounts.length}</div>
+                    <div className="metric-value mono">
+                      {scanData.emptyAccounts.length}
+                    </div>
                   </div>
                   <div className="metric-item">
                     <div className="metric-label">{t.reclaimableRent}</div>
@@ -501,17 +567,23 @@ export default function SolCheckWebPreviewPage() {
                   </div>
                   <div className="metric-item">
                     <div className="metric-label">{t.activeTokens}</div>
-                    <div className="metric-value mono">{scanData.activeTokenAccountsCount}</div>
+                    <div className="metric-value mono">
+                      {scanData.activeTokenAccountsCount}
+                    </div>
                   </div>
                   <div className="metric-item">
                     <div className="metric-label">Delegations</div>
-                    <div className="metric-value mono">{scanData.delegatedAccountsCount}</div>
+                    <div className="metric-value mono">
+                      {scanData.delegatedAccountsCount}
+                    </div>
                   </div>
                 </div>
 
                 <div
                   className={`reclaim-callout ${
-                    scanData.emptyAccounts.length === 0 ? "reclaim-callout-clean" : ""
+                    scanData.emptyAccounts.length === 0
+                      ? "reclaim-callout-clean"
+                      : ""
                   }`}
                 >
                   <strong style={{ fontSize: "0.92rem" }}>
@@ -521,7 +593,12 @@ export default function SolCheckWebPreviewPage() {
                         })`
                       : t.cleanWallet}
                   </strong>
-                  <span style={{ fontSize: "0.81rem", color: "var(--text-secondary)" }}>
+                  <span
+                    style={{
+                      fontSize: "0.81rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
                     {t.mobileActionNote}
                   </span>
                 </div>
@@ -547,10 +624,24 @@ export default function SolCheckWebPreviewPage() {
                 </div>
 
                 {scanData.vault.initialized ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <strong>{scanData.vault.goalName}</strong>
-                      <span className="mono" style={{ color: "var(--sol-green)" }}>
+                      <span
+                        className="mono"
+                        style={{ color: "var(--sol-green)" }}
+                      >
                         {scanData.vault.progressPercent}%
                       </span>
                     </div>
@@ -562,14 +653,22 @@ export default function SolCheckWebPreviewPage() {
                     </div>
                     <div
                       className="mono"
-                      style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}
+                      style={{
+                        fontSize: "0.85rem",
+                        color: "var(--text-secondary)",
+                      }}
                     >
                       {(scanData.vault.currentLamports / 1e9).toFixed(4)} /{" "}
                       {(scanData.vault.targetLamports / 1e9).toFixed(4)} SOL
                     </div>
                   </div>
                 ) : (
-                  <p style={{ fontSize: "0.86rem", color: "var(--text-secondary)" }}>
+                  <p
+                    style={{
+                      fontSize: "0.86rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
                     {t.vaultUninitialized}
                   </p>
                 )}
@@ -600,7 +699,12 @@ export default function SolCheckWebPreviewPage() {
                 </div>
 
                 {analyzing && !analysis ? (
-                  <p style={{ color: "var(--text-secondary)", fontSize: "0.92rem" }}>
+                  <p
+                    style={{
+                      color: "var(--text-secondary)",
+                      fontSize: "0.92rem",
+                    }}
+                  >
                     {t.analyzing}
                   </p>
                 ) : analysis ? (
@@ -609,7 +713,6 @@ export default function SolCheckWebPreviewPage() {
                       {analysis.headline}
                     </h2>
 
-                    {/* ElevenLabs Voice Briefing Box */}
                     <div className="voice-box">
                       <div className="voice-top">
                         <button
@@ -619,7 +722,11 @@ export default function SolCheckWebPreviewPage() {
                           disabled={audioLoading}
                           onClick={handlePlayBriefing}
                         >
-                          {isPlaying ? <Square size={15} /> : <Volume2 size={16} />}
+                          {isPlaying ? (
+                            <Square size={15} />
+                          ) : (
+                            <Volume2 size={16} />
+                          )}
                           <span>
                             {audioLoading
                               ? t.loadingAudio
@@ -635,13 +742,14 @@ export default function SolCheckWebPreviewPage() {
 
                       <p className="voice-script">“{analysis.voiceScript}”</p>
                       {usedFallbackSpeech && (
-                        <span style={{ fontSize: "0.75rem", color: "var(--amber)" }}>
+                        <span
+                          style={{ fontSize: "0.75rem", color: "var(--amber)" }}
+                        >
                           {t.browserTtsNote}
                         </span>
                       )}
                     </div>
 
-                    {/* Prioritized Insights */}
                     <div className="insights-stack">
                       {analysis.insights.map((ins, idx) => (
                         <div key={idx} className="insight-row">
@@ -649,7 +757,9 @@ export default function SolCheckWebPreviewPage() {
                             <span className={`sev-pill sev-${ins.severity}`}>
                               {ins.severity}
                             </span>
-                            <strong style={{ fontSize: "0.92rem" }}>{ins.title}</strong>
+                            <strong style={{ fontSize: "0.92rem" }}>
+                              {ins.title}
+                            </strong>
                           </div>
                           <p
                             style={{
@@ -663,7 +773,6 @@ export default function SolCheckWebPreviewPage() {
                       ))}
                     </div>
 
-                    {/* Quick Follow-Up Questions */}
                     <div className="chip-row">
                       {t.quickQuestions.map((q) => (
                         <button
@@ -680,7 +789,6 @@ export default function SolCheckWebPreviewPage() {
                       ))}
                     </div>
 
-                    {/* Live Firecrawl Sources */}
                     <div className="sources-bar">
                       <span
                         style={{
@@ -717,7 +825,10 @@ export default function SolCheckWebPreviewPage() {
                 <div className="panel">
                   <div className="panel-header">
                     <span className="panel-title">{t.emptyTableTitle}</span>
-                    <span className="mono" style={{ fontSize: "0.82rem", color: "var(--sol-green)" }}>
+                    <span
+                      className="mono"
+                      style={{ fontSize: "0.82rem", color: "var(--sol-green)" }}
+                    >
                       {scanData.emptyAccounts.length} ATAs · +
                       {scanData.totalReclaimableSol.toFixed(6)} SOL
                     </span>
@@ -742,7 +853,10 @@ export default function SolCheckWebPreviewPage() {
                                 ? "Token-2022"
                                 : "SPL Token"}
                             </td>
-                            <td className="mono" style={{ color: "var(--sol-green)" }}>
+                            <td
+                              className="mono"
+                              style={{ color: "var(--sol-green)" }}
+                            >
                               +{(acc.reclaimableLamports / 1e9).toFixed(6)} SOL
                             </td>
                           </tr>
@@ -750,6 +864,109 @@ export default function SolCheckWebPreviewPage() {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Full-width Supabase History & Health Score Evolution Panel */}
+            {historyData && (
+              <div className="col-12">
+                <div className="panel">
+                  <div className="panel-header">
+                    <span className="panel-title">
+                      <Clock size={16} />
+                      {t.historyTitle}
+                    </span>
+                  </div>
+
+                  <div className="history-kpis">
+                    <div className="metric-item">
+                      <div className="metric-label">{t.totalReclaimed}</div>
+                      <div
+                        className="metric-value mono"
+                        style={{ color: "var(--sol-green)" }}
+                      >
+                        +{historyData.totalSolReclaimed.toFixed(5)} SOL
+                      </div>
+                    </div>
+                    <div className="metric-item">
+                      <div className="metric-label">{t.accountsClosed}</div>
+                      <div className="metric-value mono">
+                        {historyData.totalAccountsClosed}
+                      </div>
+                    </div>
+                    <div className="metric-item">
+                      <div className="metric-label">{t.scansRun}</div>
+                      <div className="metric-value mono">
+                        {historyData.scansCount}
+                      </div>
+                    </div>
+                  </div>
+
+                  {orderedSnapshots.length > 0 && (
+                    <div className="score-bars">
+                      {orderedSnapshots.map((snap) => {
+                        const barColor =
+                          snap.healthScore >= 80
+                            ? "#14F195"
+                            : snap.healthScore >= 50
+                              ? "#F59E0B"
+                              : "#EF4444";
+                        return (
+                          <div key={snap.id} className="score-bar-col">
+                            <span
+                              className="mono"
+                              style={{
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                color: barColor,
+                              }}
+                            >
+                              {snap.healthScore}
+                            </span>
+                            <div className="score-bar-track">
+                              <div
+                                className="score-bar-fill"
+                                style={{
+                                  height: `${Math.max(8, snap.healthScore)}%`,
+                                  backgroundColor: barColor,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {historyData.events.length > 0 ? (
+                    <div className="source-links">
+                      {historyData.events.map((ev) => (
+                        <a
+                          key={ev.id}
+                          href={ev.explorerUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="source-link mono"
+                        >
+                          <span>
+                            {ev.actionType.replace(/_/g, " ").toUpperCase()} ·{" "}
+                            {ev.solAmount.toFixed(4)} SOL
+                          </span>
+                          <ExternalLink size={12} />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "0.82rem",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {t.noEventsYet}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
