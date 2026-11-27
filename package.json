@@ -5,6 +5,7 @@
   "description": "SolCheck — AI Wallet Advisor, Rent Reclaim & Non-Custodial Savings Vault on Solana Mobile",
   "license": "MIT",
   "scripts": {
+    "test": "tsx --test tests/*.test.ts",
     "seed:dirty-wallet": "tsx scripts/seed-dirty-wallet.ts",
     "dev:api": "npm --prefix apps/api run dev",
     "build:api": "npm --prefix apps/api run build",
