@@ -2,13 +2,18 @@ import "../src/polyfills";
 
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { Activity, Clock, Sparkles, Vault } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { AppProvider, useSolCheck } from "../src/context/AppContext";
 import { COLORS } from "../src/theme";
 
 function SolCheckTabs() {
   const { t } = useSolCheck();
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(COLORS.bgPrimary).catch(() => {});
+  }, []);
 
   return (
     <Tabs

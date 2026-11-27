@@ -3,6 +3,13 @@ export const en = {
   appSubtitle: "AI Wallet Advisor & Rent Reclaim on Solana",
   connectBtn: "Connect Wallet (Seeker / Phantom)",
   connectingBtn: "Connecting...",
+  tryDemoReadOnly: "Inspect Demo Wallet (Read-Only)",
+  watchCustomPlaceholder: "Or paste any Solana Base58 wallet...",
+  watchBtn: "Inspect",
+  watchOnlyBadge: "READ-ONLY",
+  watchOnlySignHint:
+    "Read-only mode. Connect via Seeker / Phantom MWA to sign on-chain transactions.",
+  connectToSignBtn: "Connect Wallet to Sign",
   disconnectBtn: "Disconnect Wallet",
   devnetBadge: "Solana Devnet",
   tabs: {
@@ -52,6 +59,9 @@ export const en = {
   vault: {
     reclaimSectionTitle: "Empty SPL Accounts (Rent Reclaim)",
     selectBatchHint: "Up to 10 accounts per atomic transaction",
+    batchSelected: "{selected}/{max} selected",
+    selectMaxBtn: "Select Top 10",
+    clearSelectionBtn: "Clear",
     noEmptyAccounts: "Your wallet has 0 empty SPL token accounts to close.",
     reclaimOnlyBtn: "Reclaim {sol} SOL to Wallet",
     reclaimAndVaultBtn: "Reclaim & Save to Goal Vault",

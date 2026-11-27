@@ -1,17 +1,21 @@
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import {
+  Eye,
   Play,
   RefreshCw,
   ShieldCheck,
   Square,
   Wallet,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -27,13 +31,16 @@ function shortAddr(addr: string): string {
 
 export default function XRayScreen() {
   const router = useRouter();
+  const [customWatchInput, setCustomWatchInput] = useState("");
   const {
     lang,
     t,
     setLang,
     walletAddress,
+    isWatchOnly,
     connecting,
     connect,
+    watchWallet,
     scanData,
     isScanning,
     refreshScan,
@@ -90,7 +97,7 @@ export default function XRayScreen() {
 
             <TouchableOpacity
               style={styles.connectBtn}
-              disabled={connecting}
+              disabled={connecting || isScanning}
               onPress={connect}
               activeOpacity={0.85}
             >
@@ -103,6 +110,37 @@ export default function XRayScreen() {
                 {connecting ? t.connectingBtn : t.connectBtn}
               </Text>
             </TouchableOpacity>
+
+            {/* Read-Only Demo Wallet Inspection for Judges */}
+            <TouchableOpacity
+              style={styles.demoWatchBtn}
+              disabled={connecting || isScanning}
+              onPress={() => watchWallet()}
+              activeOpacity={0.85}
+            >
+              <Eye size={16} color={COLORS.solanaGreen} />
+              <Text style={styles.demoWatchBtnText}>{t.tryDemoReadOnly}</Text>
+            </TouchableOpacity>
+
+            <View style={styles.customWatchRow}>
+              <TextInput
+                style={styles.customWatchInput}
+                value={customWatchInput}
+                onChangeText={setCustomWatchInput}
+                placeholder={t.watchCustomPlaceholder}
+                placeholderTextColor={COLORS.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {customWatchInput.trim().length > 0 && (
+                <TouchableOpacity
+                  style={styles.customWatchGoBtn}
+                  onPress={() => watchWallet(customWatchInput)}
+                >
+                  <Text style={styles.customWatchGoText}>{t.watchBtn}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
             {lastError ? (
               <Text style={styles.errorText}>{lastError}</Text>
@@ -117,7 +155,7 @@ export default function XRayScreen() {
     );
   }
 
-  // Connected State
+  // Connected or Read-Only Inspection State
   const emptyCount = scanData?.emptyAccounts.length ?? 0;
   const reclaimSol = scanData?.totalReclaimableSol ?? 0;
 
@@ -126,13 +164,37 @@ export default function XRayScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isScanning}
+            onRefresh={() => refreshScan()}
+            tintColor={COLORS.solanaGreen}
+            colors={[COLORS.solanaGreen]}
+            progressBackgroundColor={COLORS.bgCard}
+          />
+        }
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <View style={styles.walletPill}>
-            <View style={styles.greenDot} />
+          <TouchableOpacity
+            style={styles.walletPill}
+            onPress={() =>
+              Linking.openURL(
+                `https://explorer.solana.com/address/${walletAddress}?cluster=devnet`
+              )
+            }
+          >
+            <View
+              style={[
+                styles.greenDot,
+                isWatchOnly && { backgroundColor: COLORS.amber },
+              ]}
+            />
             <Text style={styles.walletPillText}>{shortAddr(walletAddress)}</Text>
-          </View>
+            {isWatchOnly && (
+              <Text style={styles.watchBadgeText}>{t.watchOnlyBadge}</Text>
+            )}
+          </TouchableOpacity>
 
           <View style={styles.headerActions}>
             <View style={styles.langToggle}>
@@ -187,7 +249,6 @@ export default function XRayScreen() {
           </View>
         ) : scanData ? (
           <>
-            {/* Health Score Gauge */}
             <HealthGauge
               score={scanData.healthScore}
               status={scanData.status}
@@ -196,7 +257,6 @@ export default function XRayScreen() {
               solBalanceLabel={t.xray.solBalance}
             />
 
-            {/* Locked Rent Highlight Card */}
             <View
               style={[
                 styles.reclaimCard,
@@ -225,7 +285,6 @@ export default function XRayScreen() {
               )}
             </View>
 
-            {/* Anchor Vault Summary Card */}
             <View style={styles.vaultSummaryCard}>
               <View style={styles.vaultSummaryRow}>
                 <Text style={styles.vaultSummaryTitle}>
@@ -268,7 +327,6 @@ export default function XRayScreen() {
               )}
             </View>
 
-            {/* Mini Voice Briefing Player */}
             <TouchableOpacity
               style={[
                 styles.miniVoiceBar,
@@ -316,7 +374,7 @@ const styles = StyleSheet.create({
   },
   heroCenter: {
     alignItems: "center",
-    gap: 14,
+    gap: 12,
   },
   logoCircle: {
     width: 72,
@@ -339,7 +397,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textSecondary,
     textAlign: "center",
-    marginBottom: 14,
+    marginBottom: 10,
     paddingHorizontal: 12,
   },
   connectBtn: {
@@ -357,6 +415,54 @@ const styles = StyleSheet.create({
     color: "#06130D",
     fontSize: 15,
     fontWeight: "800",
+  },
+  demoWatchBtn: {
+    width: "100%",
+    backgroundColor: COLORS.bgCard,
+    borderWidth: 1,
+    borderColor: COLORS.borderStrong,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  demoWatchBtnText: {
+    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  customWatchRow: {
+    width: "100%",
+    flexDirection: "row",
+    gap: 8,
+  },
+  customWatchInput: {
+    flex: 1,
+    backgroundColor: COLORS.bgCard,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    borderRadius: 10,
+    color: COLORS.textPrimary,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 12,
+    fontVariant: ["tabular-nums"],
+  },
+  customWatchGoBtn: {
+    backgroundColor: COLORS.solanaGreenDim,
+    borderWidth: 1,
+    borderColor: COLORS.solanaGreen,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+  },
+  customWatchGoText: {
+    color: COLORS.solanaGreen,
+    fontSize: 12,
+    fontWeight: "700",
   },
   footerBadge: {
     alignItems: "center",
@@ -380,7 +486,7 @@ const styles = StyleSheet.create({
   walletPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 7,
     backgroundColor: COLORS.bgCard,
     borderWidth: 1,
     borderColor: COLORS.borderSubtle,
@@ -399,6 +505,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     fontVariant: ["tabular-nums"],
+  },
+  watchBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: COLORS.amber,
+    marginLeft: 2,
   },
   headerActions: {
     flexDirection: "row",

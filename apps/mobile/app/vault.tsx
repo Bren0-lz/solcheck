@@ -1,9 +1,10 @@
 import { LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import * as Linking from "expo-linking";
-import { Sparkles } from "lucide-react-native";
+import { Sparkles, Wallet } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -32,7 +33,17 @@ import { COLORS } from "../src/theme";
 import { VaultActionType } from "../src/types/api";
 
 export default function VaultScreen() {
-  const { lang, t, walletAddress, scanData, refreshScan } = useSolCheck();
+  const {
+    lang,
+    t,
+    walletAddress,
+    isWatchOnly,
+    connect,
+    connecting,
+    scanData,
+    isScanning,
+    refreshScan,
+  } = useSolCheck();
 
   const [selectedPubkeys, setSelectedPubkeys] = useState<Set<string>>(
     new Set()
@@ -87,6 +98,21 @@ export default function VaultScreen() {
     });
   }
 
+  function selectTopBatch() {
+    if (!scanData) return;
+    setSelectedPubkeys(
+      new Set(
+        scanData.emptyAccounts
+          .slice(0, MAX_ACCOUNTS_PER_BATCH)
+          .map((a) => a.pubkey)
+      )
+    );
+  }
+
+  function clearBatch() {
+    setSelectedPubkeys(new Set());
+  }
+
   async function finalizeTx(params: {
     signature: string;
     actionType: VaultActionType;
@@ -109,7 +135,7 @@ export default function VaultScreen() {
   }
 
   async function handleReclaimOnly() {
-    if (selectedAccounts.length === 0) return;
+    if (selectedAccounts.length === 0 || isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -141,7 +167,7 @@ export default function VaultScreen() {
   }
 
   async function handleAtomicReclaimAndVault() {
-    if (selectedAccounts.length === 0) return;
+    if (selectedAccounts.length === 0 || isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -179,6 +205,7 @@ export default function VaultScreen() {
   }
 
   async function handleCreateVault(goalName: string, targetSol: number) {
+    if (isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -202,6 +229,7 @@ export default function VaultScreen() {
   }
 
   async function handleUpdateGoal(goalName: string, targetSol: number) {
+    if (isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -225,6 +253,7 @@ export default function VaultScreen() {
   }
 
   async function handleVaultDeposit(solAmount: number) {
+    if (isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -252,6 +281,7 @@ export default function VaultScreen() {
   }
 
   async function handleVaultWithdraw(solAmount: number) {
+    if (isWatchOnly) return;
     setTxBusy(true);
     setTxError(null);
     setLastTxSig(null);
@@ -278,12 +308,42 @@ export default function VaultScreen() {
     }
   }
 
+  const maxSelectable = Math.min(
+    MAX_ACCOUNTS_PER_BATCH,
+    scanData.emptyAccounts.length
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isScanning}
+            onRefresh={() => refreshScan()}
+            tintColor={COLORS.solanaGreen}
+            colors={[COLORS.solanaGreen]}
+            progressBackgroundColor={COLORS.bgCard}
+          />
+        }
       >
+        {isWatchOnly && (
+          <View style={styles.watchBanner}>
+            <Text style={styles.watchBannerText}>{t.watchOnlySignHint}</Text>
+            <TouchableOpacity
+              style={styles.watchConnectBtn}
+              disabled={connecting}
+              onPress={connect}
+            >
+              <Wallet size={15} color="#06130D" />
+              <Text style={styles.watchConnectBtnText}>
+                {t.connectToSignBtn}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {txError ? <Text style={styles.errorBanner}>{txError}</Text> : null}
 
         {lastTxSig ? (
@@ -310,6 +370,32 @@ export default function VaultScreen() {
             <Text style={styles.emptyNote}>{t.vault.noEmptyAccounts}</Text>
           ) : (
             <>
+              <View style={styles.batchToolbar}>
+                <Text style={styles.batchCountText}>
+                  {t.vault.batchSelected
+                    .replace("{selected}", String(selectedAccounts.length))
+                    .replace("{max}", String(maxSelectable))}
+                </Text>
+                <View style={styles.batchBtnsRow}>
+                  <TouchableOpacity
+                    style={styles.miniActionBtn}
+                    onPress={selectTopBatch}
+                  >
+                    <Text style={styles.miniActionText}>
+                      {t.vault.selectMaxBtn}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.miniActionBtn}
+                    onPress={clearBatch}
+                  >
+                    <Text style={styles.miniActionText}>
+                      {t.vault.clearSelectionBtn}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <View style={styles.listStack}>
                 {scanData.emptyAccounts.map((acc) => (
                   <TokenAccountRow
@@ -328,14 +414,15 @@ export default function VaultScreen() {
                 </View>
               )}
 
-              {/* Starred Atomic 1-Signature Combo CTA */}
               <TouchableOpacity
                 style={[
                   styles.atomicBtn,
-                  (txBusy || selectedAccounts.length === 0) &&
+                  (txBusy || isWatchOnly || selectedAccounts.length === 0) &&
                     styles.disabledBtn,
                 ]}
-                disabled={txBusy || selectedAccounts.length === 0}
+                disabled={
+                  txBusy || isWatchOnly || selectedAccounts.length === 0
+                }
                 onPress={handleAtomicReclaimAndVault}
                 activeOpacity={0.85}
               >
@@ -345,14 +432,15 @@ export default function VaultScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Standard Reclaim-Only CTA */}
               <TouchableOpacity
                 style={[
                   styles.reclaimOnlyBtn,
-                  (txBusy || selectedAccounts.length === 0) &&
+                  (txBusy || isWatchOnly || selectedAccounts.length === 0) &&
                     styles.disabledBtn,
                 ]}
-                disabled={txBusy || selectedAccounts.length === 0}
+                disabled={
+                  txBusy || isWatchOnly || selectedAccounts.length === 0
+                }
                 onPress={handleReclaimOnly}
                 activeOpacity={0.85}
               >
@@ -371,7 +459,7 @@ export default function VaultScreen() {
         <VaultCard
           vault={scanData.vault}
           t={t.vault}
-          busy={txBusy}
+          busy={txBusy || isWatchOnly}
           onCreateVault={handleCreateVault}
           onUpdateGoal={handleUpdateGoal}
           onDeposit={handleVaultDeposit}
@@ -403,6 +491,33 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingBottom: 36,
   },
+  watchBanner: {
+    backgroundColor: COLORS.amberDim,
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.4)",
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  watchBannerText: {
+    color: COLORS.textPrimary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  watchConnectBtn: {
+    backgroundColor: COLORS.solanaGreen,
+    borderRadius: 10,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  watchConnectBtnText: {
+    color: "#06130D",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   card: {
     backgroundColor: COLORS.bgCard,
     borderWidth: 1,
@@ -419,6 +534,36 @@ const styles = StyleSheet.create({
   cardHint: {
     fontSize: 12,
     color: COLORS.textMuted,
+  },
+  batchToolbar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  batchCountText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.solanaGreen,
+    fontVariant: ["tabular-nums"],
+  },
+  batchBtnsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  miniActionBtn: {
+    backgroundColor: COLORS.bgSubtle,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  miniActionText: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
   },
   emptyNote: {
     fontSize: 13,

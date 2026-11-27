@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PublicKey } from "@solana/web3.js";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import React, {
@@ -26,14 +27,17 @@ import {
 } from "../types/api";
 
 const STORAGE_LANG_KEY = "@solcheck/preferred_lang";
+const DEFAULT_DEMO_WALLET = "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg";
 
 interface AppContextValue {
   lang: AppLang;
   t: Dictionary;
   setLang: (next: AppLang) => Promise<void>;
   walletAddress: string | null;
+  isWatchOnly: boolean;
   connecting: boolean;
   connect: () => Promise<void>;
+  watchWallet: (customAddress?: string) => Promise<void>;
   disconnect: () => Promise<void>;
   scanData: ScanResponse | null;
   isScanning: boolean;
@@ -62,6 +66,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<AppLang>("en");
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isWatchOnly, setIsWatchOnly] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
   const [scanData, setScanData] = useState<ScanResponse | null>(null);
@@ -165,7 +170,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
         setScanData(scanned);
 
-        // Kick off AI diagnosis and history refresh in parallel
         void refreshAnalysis({ scanOverride: scanned, langOverride: lang });
         void refreshHistory(addr);
 
@@ -182,7 +186,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [walletAddress, lang, refreshAnalysis, refreshHistory]
   );
 
-  // Restore saved language and wallet address on app startup
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -193,6 +196,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const savedWallet = await getRestoredWalletAddress();
       if (mounted && savedWallet) {
         setWalletAddress(savedWallet);
+        setIsWatchOnly(false);
         setIsScanning(true);
         try {
           const cluster =
@@ -254,6 +258,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLastError(null);
     try {
       const { address } = await connectMobileWallet();
+      setIsWatchOnly(false);
       setWalletAddress(address);
       await refreshScan(address);
     } catch (err) {
@@ -263,15 +268,42 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lang, refreshScan]);
 
+  const watchWallet = useCallback(
+    async (customAddress?: string) => {
+      const envDemo = process.env.EXPO_PUBLIC_DEMO_WALLET?.trim();
+      const fallback =
+        envDemo && !envDemo.includes("<") ? envDemo : DEFAULT_DEMO_WALLET;
+      const target = (customAddress?.trim() || fallback).trim();
+
+      try {
+        const valid = new PublicKey(target).toBase58();
+        setLastError(null);
+        setIsWatchOnly(true);
+        setWalletAddress(valid);
+        await refreshScan(valid);
+      } catch {
+        setLastError(
+          lang === "pt"
+            ? "Endereço Solana Base58 inválido."
+            : "Invalid Solana Base58 wallet address."
+        );
+      }
+    },
+    [lang, refreshScan]
+  );
+
   const disconnect = useCallback(async () => {
     await stopVoiceBriefing();
-    await disconnectMobileWallet();
+    if (!isWatchOnly) {
+      await disconnectMobileWallet();
+    }
+    setIsWatchOnly(false);
     setWalletAddress(null);
     setScanData(null);
     setAnalysis(null);
     setHistory(null);
     setLastError(null);
-  }, [stopVoiceBriefing]);
+  }, [isWatchOnly, stopVoiceBriefing]);
 
   const toggleVoiceBriefing = useCallback(async () => {
     if (isPlayingAudio) {
@@ -333,8 +365,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         t: DICTIONARIES[lang],
         setLang,
         walletAddress,
+        isWatchOnly,
         connecting,
         connect,
+        watchWallet,
         disconnect,
         scanData,
         isScanning,
