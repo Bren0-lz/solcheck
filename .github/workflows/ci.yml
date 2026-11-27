@@ -1,0 +1,40 @@
+name: SolCheck CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Typecheck, Unit Tests & Next.js Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Backend API dependencies
+        run: npm --prefix apps/api ci
+
+      - name: Install Mobile dependencies
+        run: npm --prefix apps/mobile install --legacy-peer-deps
+
+      - name: Run unit & on-chain codec tests
+        run: npm test
+
+      - name: Run full monorepo TypeScript check
+        run: npm run typecheck
+
+      - name: Build Next.js API & Web Preview
+        run: npm run build:api
