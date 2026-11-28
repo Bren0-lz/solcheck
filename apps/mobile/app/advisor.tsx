@@ -25,6 +25,7 @@ export default function AdvisorScreen() {
     refreshAnalysis,
     isPlayingAudio,
     isLoadingAudio,
+    voiceMode,
     toggleVoiceBriefing,
   } = useSolCheck();
 
@@ -57,7 +58,11 @@ export default function AdvisorScreen() {
 
         <VoicePlayer
           title={t.advisor.voiceTitle}
-          poweredByLabel={t.advisor.poweredByEleven}
+          poweredByLabel={
+            voiceMode === "device"
+              ? t.advisor.poweredByDeviceTts
+              : t.advisor.poweredByEleven
+          }
           playLabel={t.advisor.playBtn}
           stopLabel={t.advisor.pauseBtn}
           loadingLabel={t.advisor.loadingVoice}

@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PublicKey } from "@solana/web3.js";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
+import * as Speech from "expo-speech";
 import React, {
   createContext,
   useCallback,
@@ -29,6 +30,8 @@ import {
 const STORAGE_LANG_KEY = "@solcheck/preferred_lang";
 const DEFAULT_DEMO_WALLET = "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg";
 
+export type VoiceEngineMode = "elevenlabs" | "device";
+
 interface AppContextValue {
   lang: AppLang;
   t: Dictionary;
@@ -55,6 +58,7 @@ interface AppContextValue {
   refreshHistory: (addressOverride?: string) => Promise<void>;
   isPlayingAudio: boolean;
   isLoadingAudio: boolean;
+  voiceMode: VoiceEngineMode;
   toggleVoiceBriefing: () => Promise<void>;
   stopVoiceBriefing: () => Promise<void>;
   lastError: string | null;
@@ -80,11 +84,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [voiceMode, setVoiceMode] = useState<VoiceEngineMode>("elevenlabs");
   const [lastError, setLastError] = useState<string | null>(null);
 
   const soundRef = useRef<Audio.Sound | null>(null);
 
   const stopVoiceBriefing = useCallback(async () => {
+    try {
+      Speech.stop();
+    } catch {
+      // Ignore native speech stop errors
+    }
     if (soundRef.current) {
       try {
         await soundRef.current.stopAsync();
@@ -99,6 +109,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return () => {
+      try {
+        Speech.stop();
+      } catch {
+        // Ignore
+      }
       if (soundRef.current) {
         soundRef.current.unloadAsync().catch(() => {});
       }
@@ -340,6 +355,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         { shouldPlay: true }
       );
       soundRef.current = sound;
+      setVoiceMode("elevenlabs");
       setIsPlayingAudio(true);
 
       sound.setOnPlaybackStatusUpdate((status) => {
@@ -349,10 +365,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           soundRef.current = null;
         }
       });
-    } catch (err) {
-      setLastError(
-        err instanceof Error ? err.message : "Failed to play ElevenLabs audio."
-      );
+    } catch {
+      // Seamless zero-cost fallback to Android's native neural TTS (expo-speech)
+      await stopVoiceBriefing();
+      setVoiceMode("device");
+      setIsPlayingAudio(true);
+      Speech.speak(script, {
+        language: lang === "pt" ? "pt-BR" : "en-US",
+        rate: 0.98,
+        onDone: () => setIsPlayingAudio(false),
+        onStopped: () => setIsPlayingAudio(false),
+        onError: () => setIsPlayingAudio(false),
+      });
     } finally {
       setIsLoadingAudio(false);
     }
@@ -381,6 +405,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         refreshHistory,
         isPlayingAudio,
         isLoadingAudio,
+        voiceMode,
         toggleVoiceBriefing,
         stopVoiceBriefing,
         lastError,

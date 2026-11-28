@@ -42,6 +42,7 @@ export const en = {
     title: "AI Financial Advisor",
     voiceTitle: "30s Voice Briefing",
     poweredByEleven: "Powered by ElevenLabs",
+    poweredByDeviceTts: "On-Device Neural Voice",
     playBtn: "Play Briefing",
     pauseBtn: "Stop Audio",
     loadingVoice: "Synthesizing...",

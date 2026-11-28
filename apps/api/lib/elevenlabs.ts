@@ -1,6 +1,20 @@
+import * as crypto from "crypto";
+import { getSupabaseAdmin } from "./supabase";
 import { AppLang, BriefingResponse } from "./types";
 
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel (Multilingual v2)
+const TTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const globalTtsCache = globalThis as unknown as {
+  __solcheckTtsCache?: Map<string, string>;
+};
+
+function getMemoryTtsCache(): Map<string, string> {
+  if (!globalTtsCache.__solcheckTtsCache) {
+    globalTtsCache.__solcheckTtsCache = new Map();
+  }
+  return globalTtsCache.__solcheckTtsCache;
+}
 
 export function isElevenLabsConfigured(): boolean {
   const key = process.env.ELEVENLABS_API_KEY?.trim();
@@ -27,6 +41,49 @@ export async function synthesizeVoiceBriefing(
     lang === "pt"
       ? process.env.ELEVENLABS_VOICE_ID_PT?.trim() || DEFAULT_VOICE_ID
       : process.env.ELEVENLABS_VOICE_ID_EN?.trim() || DEFAULT_VOICE_ID;
+
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${lang}:${voiceId}:${cleanText}`)
+    .digest("hex")
+    .slice(0, 24);
+  const cacheSlug = `tts-${hash}`;
+
+  // 1. Check in-memory & Supabase TTS cache first to preserve Free Tier character quota
+  const memCache = getMemoryTtsCache();
+  const fromMem = memCache.get(cacheSlug);
+  if (fromMem) {
+    return {
+      audioBase64: fromMem,
+      mimeType: "audio/mpeg",
+      lang,
+      charCount: cleanText.length,
+    };
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from("protocol_research_cache")
+        .select("extracted_markdown, expires_at")
+        .eq("protocol_slug", cacheSlug)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+
+      if (data?.extracted_markdown) {
+        memCache.set(cacheSlug, String(data.extracted_markdown));
+        return {
+          audioBase64: String(data.extracted_markdown),
+          mimeType: "audio/mpeg",
+          lang,
+          charCount: cleanText.length,
+        };
+      }
+    } catch {
+      // Proceed to live ElevenLabs synthesis
+    }
+  }
 
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`,
@@ -58,6 +115,31 @@ export async function synthesizeVoiceBriefing(
 
   const arrayBuffer = await response.arrayBuffer();
   const audioBase64 = Buffer.from(arrayBuffer).toString("base64");
+
+  if (memCache.size >= 40) {
+    const oldestKey = memCache.keys().next().value;
+    if (oldestKey) memCache.delete(oldestKey);
+  }
+  memCache.set(cacheSlug, audioBase64);
+
+  if (supabase) {
+    try {
+      const now = new Date();
+      await supabase.from("protocol_research_cache").upsert(
+        {
+          protocol_slug: cacheSlug,
+          source_url: "elevenlabs://multilingual_v2",
+          extracted_markdown: audioBase64,
+          structured_insights: { lang, charCount: cleanText.length },
+          fetched_at: now.toISOString(),
+          expires_at: new Date(now.getTime() + TTS_CACHE_TTL_MS).toISOString(),
+        },
+        { onConflict: "protocol_slug" }
+      );
+    } catch {
+      // Ignore cache write failure
+    }
+  }
 
   return {
     audioBase64,
