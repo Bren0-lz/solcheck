@@ -65,7 +65,7 @@ jobs:
           VAR_RPC_URL: ${{ vars.EXPO_PUBLIC_SOLANA_RPC_URL }}
         run: |
           API_URL="${INPUT_API_URL:-${VAR_API_URL:-https://solcheck.vercel.app}}"
-          VAULT_ID="${INPUT_VAULT_ID:-${VAR_VAULT_ID:-11111111111111111111111111111111}}"
+          VAULT_ID="${INPUT_VAULT_ID:-${VAR_VAULT_ID:-7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp}}"
           RPC_URL="${VAR_RPC_URL:-https://api.devnet.solana.com}"
           cat <<EOF > .env
           EXPO_PUBLIC_API_BASE_URL=${API_URL}

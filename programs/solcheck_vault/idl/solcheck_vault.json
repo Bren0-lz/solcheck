@@ -1,5 +1,5 @@
 {
-  "address": "11111111111111111111111111111111",
+  "address": "7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp",
   "metadata": {
     "name": "solcheck_vault",
     "version": "0.1.0",
@@ -9,94 +9,229 @@
   "instructions": [
     {
       "name": "initialize_vault",
-      "discriminator": [48, 191, 163, 44, 71, 129, 63, 164],
+      "discriminator": [
+        48,
+        191,
+        163,
+        44,
+        71,
+        129,
+        63,
+        164
+      ],
       "accounts": [
         {
           "name": "vault",
           "writable": true,
           "pda": {
             "seeds": [
-              { "kind": "const", "value": [118, 97, 117, 108, 116] },
-              { "kind": "account", "path": "owner" }
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
             ]
           }
         },
-        { "name": "owner", "writable": true, "signer": true },
-        { "name": "system_program", "address": "11111111111111111111111111111111" }
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
       ],
       "args": [
-        { "name": "goal_name", "type": "string" },
-        { "name": "target_lamports", "type": "u64" }
+        {
+          "name": "goal_name",
+          "type": "string"
+        },
+        {
+          "name": "target_lamports",
+          "type": "u64"
+        }
       ]
     },
     {
       "name": "deposit",
-      "discriminator": [242, 35, 198, 137, 82, 225, 242, 182],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
       "accounts": [
         {
           "name": "vault",
           "writable": true,
           "pda": {
             "seeds": [
-              { "kind": "const", "value": [118, 97, 117, 108, 116] },
-              { "kind": "account", "path": "owner" }
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
             ]
           }
         },
-        { "name": "owner", "writable": true, "signer": true },
-        { "name": "system_program", "address": "11111111111111111111111111111111" }
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u64" },
-        { "name": "from_reclaim", "type": "bool" }
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "from_reclaim",
+          "type": "bool"
+        }
       ]
     },
     {
       "name": "withdraw",
-      "discriminator": [183, 18, 70, 156, 148, 109, 161, 34],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
       "accounts": [
         {
           "name": "vault",
           "writable": true,
           "pda": {
             "seeds": [
-              { "kind": "const", "value": [118, 97, 117, 108, 116] },
-              { "kind": "account", "path": "owner" }
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
             ]
           }
         },
-        { "name": "owner", "writable": true, "signer": true }
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        }
       ],
       "args": [
-        { "name": "amount", "type": "u64" }
+        {
+          "name": "amount",
+          "type": "u64"
+        }
       ]
     },
     {
       "name": "update_goal",
-      "discriminator": [143, 149, 87, 239, 70, 114, 214, 221],
+      "discriminator": [
+        143,
+        149,
+        87,
+        239,
+        70,
+        114,
+        214,
+        221
+      ],
       "accounts": [
         {
           "name": "vault",
           "writable": true,
           "pda": {
             "seeds": [
-              { "kind": "const", "value": [118, 97, 117, 108, 116] },
-              { "kind": "account", "path": "owner" }
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
             ]
           }
         },
-        { "name": "owner", "signer": true }
+        {
+          "name": "owner",
+          "signer": true
+        }
       ],
       "args": [
-        { "name": "goal_name", "type": "string" },
-        { "name": "target_lamports", "type": "u64" }
+        {
+          "name": "goal_name",
+          "type": "string"
+        },
+        {
+          "name": "target_lamports",
+          "type": "u64"
+        }
       ]
     }
   ],
   "accounts": [
     {
       "name": "VaultAccount",
-      "discriminator": [230, 251, 241, 83, 139, 202, 93, 28]
+      "discriminator": [
+        230,
+        251,
+        241,
+        83,
+        139,
+        202,
+        93,
+        28
+      ]
     }
   ],
   "types": [
@@ -105,22 +240,63 @@
       "type": {
         "kind": "struct",
         "fields": [
-          { "name": "owner", "type": "pubkey" },
-          { "name": "goal_name", "type": "string" },
-          { "name": "target_lamports", "type": "u64" },
-          { "name": "total_deposited", "type": "u64" },
-          { "name": "total_reclaimed_routed", "type": "u64" },
-          { "name": "created_at", "type": "i64" },
-          { "name": "bump", "type": "u8" }
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "goal_name",
+            "type": "string"
+          },
+          {
+            "name": "target_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "total_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_reclaimed_routed",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
         ]
       }
     }
   ],
   "errors": [
-    { "code": 6000, "name": "GoalNameTooLong", "msg": "Goal name must be at most 32 characters." },
-    { "code": 6001, "name": "InvalidAmount", "msg": "Amount or target must be greater than zero." },
-    { "code": 6002, "name": "InsufficientVaultBalance", "msg": "Insufficient withdrawable balance in vault." },
-    { "code": 6003, "name": "Unauthorized", "msg": "Only the vault owner can perform this action." },
-    { "code": 6004, "name": "MathOverflow", "msg": "Arithmetic overflow." }
+    {
+      "code": 6000,
+      "name": "GoalNameTooLong",
+      "msg": "Goal name must be at most 32 characters."
+    },
+    {
+      "code": 6001,
+      "name": "InvalidAmount",
+      "msg": "Amount or target must be greater than zero."
+    },
+    {
+      "code": 6002,
+      "name": "InsufficientVaultBalance",
+      "msg": "Insufficient withdrawable balance in vault."
+    },
+    {
+      "code": 6003,
+      "name": "Unauthorized",
+      "msg": "Only the vault owner can perform this action."
+    },
+    {
+      "code": 6004,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow."
+    }
   ]
 }
