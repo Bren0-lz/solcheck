@@ -44,6 +44,7 @@ export const pt: Dictionary = {
     title: "Consultor Financeiro de IA",
     voiceTitle: "Briefing em Voz (30s)",
     poweredByEleven: "Powered by ElevenLabs",
+    poweredByDeviceTts: "Voz Neural Nativa",
     playBtn: "Ouvir Briefing",
     pauseBtn: "Parar Áudio",
     loadingVoice: "Gerando Voz...",
