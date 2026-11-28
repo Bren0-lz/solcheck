@@ -1,5 +1,7 @@
 # SolCheck — AI Wallet Advisor, Rent Reclaim & Savings Vault on Solana Mobile
 
+[![SolCheck CI](https://github.com/Bren0-lz/solcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/Bren0-lz/solcheck/actions/workflows/ci.yml)
+[![Build Android APK](https://github.com/Bren0-lz/solcheck/actions/workflows/android-apk.yml/badge.svg)](https://github.com/Bren0-lz/solcheck/actions/workflows/android-apk.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-14F195.svg)](./LICENSE)
 [![Solana Devnet](https://img.shields.io/badge/Solana-Devnet-9945FF.svg)](https://explorer.solana.com/?cluster=devnet)
 [![Solana Mobile](https://img.shields.io/badge/Solana_Mobile-MWA_%2F_Seeker-14F195.svg)](https://solanamobile.com/)
@@ -31,7 +33,7 @@ flowchart TB
         Scan["POST /api/scan\nSPL + Token-2022 + Borsh Vault Decoder"]
         Analyze["POST /api/analyze\nFirecrawl Live Scrape + Groq Llama 3.3 JSON"]
         Briefing["POST /api/briefing\nElevenLabs Multilingual v2 TTS"]
-        History["GET /api/history & POST /api/reclaim-log"]
+        History["GET /api/history, POST /api/reclaim-log & GET /api/health"]
     end
 
     subgraph External["Blockchain & Ecosystem Integrations"]
@@ -63,8 +65,8 @@ flowchart TB
 
 | Layer | Technology | How SolCheck Uses It |
 | --- | --- | --- |
-| **Solana Mobile** | Expo Custom Dev Build + `@solana-mobile/mobile-wallet-adapter-protocol-web3js` | Native Android connection & 1-tap biometric transaction signing with Phantom / Solana Seeker (`devnet`). |
-| **On-Chain Program** | Rust / Anchor (`solcheck_vault`) + SPL Token / Token-2022 | Non-custodial user PDA (`["vault", owner]`) tracking savings goals, total deposited lamports, and rent-reclaim routed SOL, plus safe `withdraw` preserving rent-exempt minimum. |
+| **Solana Mobile** | Expo Custom Dev Build + `@solana-mobile/mobile-wallet-adapter-protocol-web3js` | Native Android connection & 1-tap biometric transaction signing with Phantom / Solana Seeker (`solana:devnet`). |
+| **On-Chain Program** | Rust / Anchor (`solcheck_vault`) + SPL Token / Token-2022 | Non-custodial user PDA (`["vault", owner]`) tracking savings goals (`initialize_vault`, `deposit`, `withdraw`, `update_goal`) and rent-reclaim routed SOL. |
 | **Firecrawl** | Firecrawl Scrape API v1 | Live markdown extraction of Solana rent, staking, and vault docs with 6-hour Supabase caching and transparent source badges. |
 | **ElevenLabs** | `eleven_multilingual_v2` TTS | Dynamic 30-second spoken financial briefings in both **English (`EN`)** and **Brazilian Portuguese (`PT-BR`)**. |
 | **Supabase** | PostgreSQL + Row-Level Security | Persists wallet profiles, Health Score evolution snapshots, verifiable transaction logs, and Firecrawl research cache. |
@@ -79,11 +81,15 @@ solcheck/
 │   ├── api/                    # Next.js 15 App Router API + Interactive Web Preview (Vercel)
 │   └── mobile/                 # Android Expo Router App + Solana Mobile MWA
 ├── programs/
-│   └── solcheck_vault/         # Anchor / Rust smart contract + IDL (Solana Devnet)
+│   └── solcheck_vault/         # Anchor / Rust smart contract + IDL + Solana Playground tests
 ├── supabase/
 │   └── schema.sql              # PostgreSQL tables, indexes, and RLS policies
 ├── scripts/
-│   └── seed-dirty-wallet.ts    # Creates 8 empty SPL ATAs on Devnet for live demo testing
+│   ├── seed-dirty-wallet.ts    # Creates 8 empty SPL ATAs on Devnet for live demo testing
+│   └── set-program-id.ts       # Propagates deployed Program ID across Rust, IDLs & env files
+├── tests/                      # Automated unit tests (Health Score, Borsh codec, MTU packet proof)
+├── docs/
+│   └── DEPLOY_AND_DEMO_RUNBOOK.md
 └── shared/
     └── types.ts                # Shared TypeScript API & on-chain contracts
 ```
@@ -93,7 +99,7 @@ solcheck/
 ## Smart Contract (`solcheck_vault`)
 
 - **Network:** Solana Devnet
-- **Program ID:** Set via `SOLCHECK_VAULT_PROGRAM_ID` / `EXPO_PUBLIC_VAULT_PROGRAM_ID` after deploying [`programs/solcheck_vault/src/lib.rs`](./programs/solcheck_vault/src/lib.rs) on [Solana Playground (`beta.solpg.io`)](https://beta.solpg.io/).
+- **Program ID:** Set via `npx tsx scripts/set-program-id.ts <PROGRAM_ID>` after deploying [`programs/solcheck_vault/src/lib.rs`](./programs/solcheck_vault/src/lib.rs) on [Solana Playground (`beta.solpg.io`)](https://beta.solpg.io/).
 - **PDA Seeds:** `["vault", owner.key().as_ref()]` (`109 bytes` total space)
 - **Instructions:**
   1. `initialize_vault(goal_name: String, target_lamports: u64)`
@@ -103,40 +109,28 @@ solcheck/
 
 ---
 
-## Quick Start & Setup
+## Quick Start & Verification
 
-### 1. Deploy Anchor Program on Solana Devnet (Solana Playground)
-1. Open [beta.solpg.io](https://beta.solpg.io/), create an **Anchor (Rust)** project named `solcheck_vault`, and paste [`programs/solcheck_vault/src/lib.rs`](./programs/solcheck_vault/src/lib.rs).
-2. Switch wallet to **Devnet**, run `Build` and `Deploy`, and copy the generated **Program ID** into `apps/api/.env.local` and `apps/mobile/.env`.
+See [`docs/DEPLOY_AND_DEMO_RUNBOOK.md`](./docs/DEPLOY_AND_DEMO_RUNBOOK.md) for the step-by-step Devnet + Supabase + Vercel + Android APK deployment guide.
 
-### 2. Initialize Supabase Database
-Run [`supabase/schema.sql`](./supabase/schema.sql) in your Supabase project's **SQL Editor**.
-
-### 3. Seed a Demo Wallet on Devnet (8 Empty SPL Accounts)
 ```bash
+# Install dependencies across workspaces
 npm install
-npx tsx scripts/seed-dirty-wallet.ts <YOUR_DEVNET_WALLET_ADDRESS>
+npm --prefix apps/api install
+npm --prefix apps/mobile install --legacy-peer-deps
+
+# Run unit tests, monorepo typechecks, and Next.js production build
+npm test
+npm run typecheck
+npm run build:api
 ```
 
-### 4. Run Backend API & Web Preview (`apps/api`)
-```bash
-cp apps/api/.env.example apps/api/.env.local
-# Fill in your API keys in apps/api/.env.local
-cd apps/api
-npm install
-npm run dev
-```
-Open `http://localhost:3000` to test the interactive **Web Preview** (*Try Demo Wallet*).
-
-### 5. Build & Run Android App (`apps/mobile` — Requires Custom Dev Build, NOT Expo Go)
-```bash
-cp apps/mobile/.env.example apps/mobile/.env
-# Set EXPO_PUBLIC_API_BASE_URL and EXPO_PUBLIC_VAULT_PROGRAM_ID
-cd apps/mobile
-npm install
-npx expo prebuild --platform android
-npx expo run:android
-```
+### API Endpoints (`apps/api`)
+- `GET /api/health` — Integration readiness check (RPC, Anchor Vault ID, Supabase, Firecrawl, Groq, ElevenLabs)
+- `POST /api/scan` — On-chain SPL + Token-2022 + Borsh `VaultAccount` wallet X-Ray
+- `POST /api/analyze` — Live Firecrawl protocol scrape + bilingual Groq Llama 3.3 JSON diagnosis
+- `POST /api/briefing` — ElevenLabs `eleven_multilingual_v2` 30-second MP3 synthesis
+- `POST /api/reclaim-log` & `GET /api/history` — Verifiable Supabase event & snapshot persistence
 
 ---
 
