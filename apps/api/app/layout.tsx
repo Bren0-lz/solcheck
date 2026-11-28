@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "SolCheck — AI Wallet Advisor, Rent Reclaim & Savings Vault on Solana",
+  title: "SolCheck — Solana Wallet Audit, Rent Reclaim & Savings Vault",
   description:
-    "Instant on-chain Solana wallet X-Ray, live ecosystem research via Firecrawl, natural 30s voice briefings via ElevenLabs, 1-click SPL rent reclaim, and non-custodial Anchor savings vaults on Solana Mobile.",
+    "Inspect any Solana wallet on-chain, detect refundable SOL locked in empty SPL token accounts, listen to a 30s voice briefing, and route reclaimed rent into a non-custodial Anchor vault on Android.",
 };
 
 export default function RootLayout({
@@ -26,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}
+    >
       <body>{children}</body>
     </html>
   );

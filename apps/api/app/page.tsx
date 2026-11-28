@@ -2,14 +2,15 @@
 
 import React, { useRef, useState } from "react";
 import {
-  Activity,
+  ArrowRight,
+  ArrowUpRight,
   Clock,
   Download,
   ExternalLink,
+  Play,
   RefreshCw,
-  ShieldCheck,
+  RotateCcw,
   Smartphone,
-  Sparkles,
   Square,
   Vault,
   Volume2,
@@ -28,77 +29,182 @@ const FALLBACK_DEMO_WALLET = "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg";
 
 const COPY = {
   en: {
-    subtitle: "AI Wallet Advisor, Rent Reclaim & Savings Vault on Solana Mobile",
-    downloadApk: "Download Android APK",
-    heroTitle: "Instant X-Ray & AI Voice Advisor for Your Solana Wallet",
+    brandTag: "Solana Wallet Audit & Rent Reclaim",
+    downloadApk: "Android APK",
+    eyebrow: "On-chain diagnostic · Non-custodial",
+    heroTitle: "Audit any Solana wallet and reclaim locked rent.",
     heroSub:
-      "Detect refundable SOL locked inside empty SPL token accounts, verify protocol insights with live Firecrawl data, listen to a 30-second ElevenLabs briefing, and route reclaimed rent into a non-custodial Anchor vault on Android.",
-    placeholder: "Enter any Solana wallet address (Base58)...",
-    scanBtn: "Run Wallet X-Ray",
+      "Inspect zero-balance SPL & Token-2022 accounts holding refundable SOL, verify ecosystem context via Firecrawl, hear a 30-second voice briefing, and route reclaimed SOL into an Anchor vault on Android.",
+    placeholder: "Paste a Solana wallet address (Base58)...",
+    scanBtn: "Run Audit",
     scanningBtn: "Scanning RPC...",
-    tryDemoBtn: "Try Demo Wallet",
-    clusterHint:
-      "100% Non-Custodial · Public on-chain read · Sign on Solana Mobile (MWA)",
-    healthTitle: "On-Chain Wallet X-Ray",
+    tryDemoBtn: "Load Demo Wallet",
+    clusterHint: "Read-only public RPC · Signing happens locally on Solana Mobile (MWA)",
+    specs: [
+      {
+        num: "01",
+        title: "Empty Account Detection",
+        desc: "Finds zero-balance SPL and Token-2022 ATAs locking ~0.00203 SOL in rent each.",
+      },
+      {
+        num: "02",
+        title: "Live Research & Voice",
+        desc: "Grounds wallet advice in live Firecrawl sources with a 30s ElevenLabs briefing.",
+      },
+      {
+        num: "03",
+        title: "Atomic Anchor Vault",
+        desc: "Close empty accounts and deposit reclaimed SOL into a PDA vault in one MWA signature.",
+      },
+    ],
+    ledgerTitle: "Audit Output Specification",
+    ledgerRows: [
+      {
+        key: "Health Score",
+        sub: "Weighted hygiene score from rent lockups, balance & delegations",
+        val: "0 – 100",
+      },
+      {
+        key: "Closable SPL ATAs",
+        sub: "SPL Token & Token-2022 accounts with zero token balance",
+        val: "~0.00203 SOL / ATA",
+      },
+      {
+        key: "Voice Briefing",
+        sub: "Spoken summary generated from live on-chain state",
+        val: "30s · EN / PT",
+      },
+      {
+        key: "Savings Vault (PDA)",
+        sub: "Non-custodial Anchor program state & progress tracking",
+        val: "On-chain PDA",
+      },
+      {
+        key: "Snapshot History",
+        sub: "Score evolution and logged reclaim transactions",
+        val: "Supabase",
+      },
+    ],
+    mobileTitle: "Execute Reclaim on Solana Mobile",
+    mobileDesc:
+      "This web inspector is strictly read-only. Install the Android APK to sign with Phantom or Solana Seeker (MWA) and move reclaimed rent straight into your Anchor savings vault.",
+    mobileCta: "Download latest Android APK",
+    newScan: "Reset",
+    explorer: "Explorer",
+    healthScore: "Health Score",
     solBalance: "SOL Balance",
-    activeTokens: "Active SPL Tokens",
-    emptyAtas: "Empty SPL Accounts",
     reclaimableRent: "Reclaimable Rent",
+    emptyAtas: "Empty Accounts",
+    activeTokens: "Active Tokens",
+    delegations: "delegated",
     healthy: "Healthy",
     needs_attention: "Needs Attention",
     leaking_value: "Leaking Value",
     lockedFound: "SOL locked across empty SPL token accounts",
     cleanWallet: "Zero empty SPL token accounts locking rent.",
     mobileActionNote:
-      "Install the SolCheck Android APK (Phantom / Solana Seeker MWA) to close empty accounts and route SOL into your Anchor vault in 1 atomic signature.",
-    advisorTitle: "AI Financial Advisor",
-    analyzing: "Fetching live Firecrawl sources & running AI analysis...",
-    playBriefing: "Play 30s AI Briefing",
+      "Use the SolCheck Android APK (Phantom / Solana Seeker MWA) to close empty accounts and route SOL into your Anchor vault in 1 atomic signature.",
+    advisorTitle: "Wallet Briefing & Findings",
+    analyzing: "Fetching live Firecrawl sources and generating diagnosis...",
+    playBriefing: "Play 30s Briefing",
     stopBriefing: "Stop Audio",
     loadingAudio: "Generating Voice...",
     browserTtsNote:
-      "Playing via browser speech fallback (configure ELEVENLABS_API_KEY on server for ElevenLabs Multilingual v2 MP3).",
+      "Playing via browser speech fallback (set ELEVENLABS_API_KEY on server for ElevenLabs Multilingual v2 MP3).",
     quickQuestions: [
       "How does Solana rent work?",
       "Is my wallet safe?",
       "How much emergency SOL should I save?",
     ],
-    liveSources: "Live Ecosystem Sources (Firecrawl)",
-    refreshLive: "Refresh Live Data",
-    vaultTitle: "Anchor Savings Goal Vault (PDA)",
-    vaultUninitialized: "Not initialized yet for this wallet",
+    liveSources: "Sources",
+    refreshLive: "Refresh Sources",
+    reclaimSection: "Rent Status & Risk Flags",
+    vaultTitle: "Anchor Savings Vault (PDA)",
+    vaultUninitialized: "Not initialized yet for this wallet.",
     emptyTableTitle: "Closable Zero-Balance SPL Accounts",
-    historyTitle: "Supabase Snapshot History & Score Evolution",
-    totalReclaimed: "Total SOL Reclaimed",
-    accountsClosed: "Empty Accounts Closed",
-    scansRun: "Scans Recorded",
-    noEventsYet: "No on-chain reclaim/vault transactions logged for this wallet yet.",
+    historyTitle: "Snapshot History",
+    totalReclaimed: "Reclaimed",
+    accountsClosed: "Closed",
+    scansRun: "Scans",
+    noEventsYet: "No on-chain reclaim or vault transactions logged yet.",
   },
   pt: {
-    subtitle: "Consultor de IA, Resgate de Rent & Cofre de Metas no Solana Mobile",
-    downloadApk: "Baixar APK Android",
-    heroTitle: "Raio-X Instantâneo e Consultor por Voz para sua Carteira Solana",
+    brandTag: "Auditoria de Carteira Solana & Resgate de Rent",
+    downloadApk: "APK Android",
+    eyebrow: "Diagnóstico on-chain · Não-custodial",
+    heroTitle: "Audite qualquer carteira Solana e resgate SOL preso.",
     heroSub:
-      "Encontre SOL reembolsável preso em contas SPL vazias, valide recomendações com dados ao vivo via Firecrawl, ouça um briefing de 30 segundos no ElevenLabs e envie o valor recuperado para um cofre Anchor não-custodial no Android.",
-    placeholder: "Digite um endereço de carteira Solana (Base58)...",
-    scanBtn: "Executar Raio-X",
-    scanningBtn: "Lendo Blockchain...",
-    tryDemoBtn: "Testar Carteira Demo",
-    clusterHint:
-      "100% Não-Custodial · Leitura pública on-chain · Assinatura via Solana Mobile (MWA)",
-    healthTitle: "Raio-X On-Chain da Carteira",
+      "Encontre contas SPL e Token-2022 vazias segurando rent reembolsável, valide o contexto com fontes ao vivo via Firecrawl, ouça um briefing de 30s e envie o valor recuperado para um cofre Anchor no Android.",
+    placeholder: "Cole um endereço de carteira Solana (Base58)...",
+    scanBtn: "Auditar",
+    scanningBtn: "Lendo RPC...",
+    tryDemoBtn: "Carregar Carteira Demo",
+    clusterHint: "Leitura pública on-chain · Assinaturas acontecem localmente no Solana Mobile (MWA)",
+    specs: [
+      {
+        num: "01",
+        title: "Contas Vazias (ATAs)",
+        desc: "Detecta contas SPL e Token-2022 zeradas prendendo ~0.00203 SOL de rent cada.",
+      },
+      {
+        num: "02",
+        title: "Fontes ao Vivo & Voz",
+        desc: "Cruza dados do ecossistema via Firecrawl com um briefing em áudio de 30s no ElevenLabs.",
+      },
+      {
+        num: "03",
+        title: "Cofre Anchor Atômico",
+        desc: "Feche contas vazias e deposite o SOL resgatado no cofre PDA em 1 assinatura MWA.",
+      },
+    ],
+    ledgerTitle: "O que a auditoria retorna",
+    ledgerRows: [
+      {
+        key: "Health Score",
+        sub: "Nota de saúde calculada por rent preso, saldo e delegações",
+        val: "0 – 100",
+      },
+      {
+        key: "Contas SPL Fecháveis",
+        sub: "Contas SPL Token e Token-2022 com saldo zerado",
+        val: "~0.00203 SOL / ATA",
+      },
+      {
+        key: "Briefing em Voz",
+        sub: "Resumo falado gerado a partir do estado real on-chain",
+        val: "30s · EN / PT",
+      },
+      {
+        key: "Cofre de Metas (PDA)",
+        sub: "Estado do programa Anchor não-custodial e progresso da meta",
+        val: "PDA On-chain",
+      },
+      {
+        key: "Histórico de Scans",
+        sub: "Evolução do score e transações de resgate registradas",
+        val: "Supabase",
+      },
+    ],
+    mobileTitle: "Execute o Resgate no Solana Mobile",
+    mobileDesc:
+      "Este inspetor web é apenas leitura. Instale o APK Android para assinar com Phantom ou Solana Seeker (MWA) e mover o rent recuperado direto para seu cofre Anchor.",
+    mobileCta: "Baixar APK Android mais recente",
+    newScan: "Limpar",
+    explorer: "Explorer",
+    healthScore: "Health Score",
     solBalance: "Saldo em SOL",
-    activeTokens: "Tokens SPL Ativos",
-    emptyAtas: "Contas SPL Vazias",
     reclaimableRent: "SOL Recuperável",
+    emptyAtas: "Contas Vazias",
+    activeTokens: "Tokens Ativos",
+    delegations: "delegadas",
     healthy: "Saudável",
     needs_attention: "Atenção",
     leaking_value: "Perdendo Valor",
-    lockedFound: "SOL preso em contas de tokens SPL vazias",
+    lockedFound: "SOL preso em contas SPL vazias",
     cleanWallet: "Zero contas SPL vazias prendendo rent.",
     mobileActionNote:
-      "Instale o APK Android do SolCheck (Phantom / Solana Seeker MWA) para fechar contas vazias e guardar no Cofre Anchor em 1 única assinatura atômica.",
-    advisorTitle: "Consultor Financeiro de IA",
+      "Use o APK Android do SolCheck (Phantom / Solana Seeker MWA) para fechar contas vazias e guardar no Cofre Anchor em 1 assinatura atômica.",
+    advisorTitle: "Briefing & Diagnóstico",
     analyzing: "Buscando fontes ao vivo no Firecrawl e gerando diagnóstico...",
     playBriefing: "Ouvir Briefing de 30s",
     stopBriefing: "Parar Áudio",
@@ -110,16 +216,17 @@ const COPY = {
       "Minha carteira está segura?",
       "Quanto devo guardar na reserva?",
     ],
-    liveSources: "Fontes ao Vivo do Ecossistema (Firecrawl)",
-    refreshLive: "Atualizar Dados ao Vivo",
-    vaultTitle: "Cofre de Metas On-Chain (Anchor PDA)",
-    vaultUninitialized: "Ainda não inicializado para esta carteira",
-    emptyTableTitle: "Contas SPL Vazias Prontas para Resgate",
-    historyTitle: "Histórico Supabase & Evolução do Health Score",
-    totalReclaimed: "Total de SOL Resgatado",
-    accountsClosed: "Contas Vazias Fechadas",
-    scansRun: "Scans Registrados",
-    noEventsYet: "Nenhuma transação de resgate/cofre registrada para esta carteira ainda.",
+    liveSources: "Fontes",
+    refreshLive: "Atualizar Fontes",
+    reclaimSection: "Status de Rent & Alertas",
+    vaultTitle: "Cofre de Metas (Anchor PDA)",
+    vaultUninitialized: "Ainda não inicializado para esta carteira.",
+    emptyTableTitle: "Contas SPL Vazias Prontas para Fechar",
+    historyTitle: "Histórico de Snapshots",
+    totalReclaimed: "Resgatado",
+    accountsClosed: "Fechadas",
+    scansRun: "Scans",
+    noEventsYet: "Nenhuma transação de resgate ou cofre registrada ainda.",
   },
 } as const;
 
@@ -249,6 +356,14 @@ export default function SolCheckWebPreviewPage() {
     }
   }
 
+  function handleReset() {
+    stopCurrentAudio();
+    setScanData(null);
+    setAnalysis(null);
+    setHistoryData(null);
+    setError(null);
+  }
+
   async function handleLangChange(nextLang: AppLang) {
     if (nextLang === lang) return;
     stopCurrentAudio();
@@ -313,664 +428,764 @@ export default function SolCheckWebPreviewPage() {
     }
   }
 
-  const gaugeRadius = 54;
-  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
-  const gaugeOffset = scanData
-    ? gaugeCircumference - (scanData.healthScore / 100) * gaugeCircumference
-    : gaugeCircumference;
-  const gaugeColor =
+  const ringRadius = 21;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringOffset = scanData
+    ? ringCircumference - (scanData.healthScore / 100) * ringCircumference
+    : ringCircumference;
+  const scoreColor =
     !scanData || scanData.status === "healthy"
-      ? "#14F195"
+      ? "#0d6e4e"
       : scanData.status === "needs_attention"
-        ? "#F59E0B"
-        : "#EF4444";
+        ? "#a16207"
+        : "#b42318";
 
   const orderedSnapshots = historyData
     ? [...historyData.snapshots].reverse()
     : [];
 
   return (
-    <div className="page-shell">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark" aria-hidden="true">
-            <ShieldCheck size={20} />
-          </div>
-          <div>
-            <div className="brand-name">SolCheck</div>
-            <div className="brand-tag">{t.subtitle}</div>
-          </div>
-        </div>
-
-        <div className="topbar-actions">
-          <div className="lang-switch" role="group" aria-label="Language selector">
-            <button
-              id="lang-en-btn"
-              type="button"
-              className={`lang-btn ${lang === "en" ? "active" : ""}`}
-              onClick={() => handleLangChange("en")}
-            >
-              EN
-            </button>
-            <button
-              id="lang-pt-btn"
-              type="button"
-              className={`lang-btn ${lang === "pt" ? "active" : ""}`}
-              onClick={() => handleLangChange("pt")}
-            >
-              PT
-            </button>
+    <div className="app-frame">
+      {/* Sticky Minimal Topbar */}
+      <div className="topbar-wrap">
+        <header className="container topbar">
+          <div className="brand">
+            <span className="brand-dot" aria-hidden="true" />
+            <span className="brand-name">SolCheck</span>
+            <span className="brand-divider" aria-hidden="true" />
+            <span className="brand-tag">{t.brandTag}</span>
           </div>
 
-          <a
-            id="download-apk-link"
-            href={apkUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="apk-btn"
-          >
-            <Smartphone size={16} />
-            <span>{t.downloadApk}</span>
-            <Download size={14} />
-          </a>
-        </div>
-      </header>
-
-      <main>
-        <section className="hero">
-          <h1>{t.heroTitle}</h1>
-          <p className="hero-sub">{t.heroSub}</p>
-
-          <div className="scanner-bar">
-            <div className="scanner-inputs">
-              <input
-                id="wallet-address-input"
-                type="text"
-                className="wallet-input mono"
-                placeholder={t.placeholder}
-                value={walletInput}
-                onChange={(e) => setWalletInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") executeScan();
-                }}
-              />
-
-              <select
-                id="cluster-select"
-                className="cluster-select"
-                value={cluster}
-                onChange={(e) => setCluster(e.target.value as SolanaCluster)}
-              >
-                <option value="devnet">Solana Devnet</option>
-                <option value="mainnet-beta">Mainnet-Beta</option>
-              </select>
-
+          <div className="topbar-actions">
+            <div className="lang-switch" role="group" aria-label="Language selector">
               <button
-                id="scan-wallet-btn"
+                id="lang-en-btn"
                 type="button"
-                className="btn-primary"
-                disabled={scanning}
-                onClick={() => executeScan()}
+                className={`lang-btn ${lang === "en" ? "active" : ""}`}
+                onClick={() => handleLangChange("en")}
               >
-                <Activity size={17} />
-                <span>{scanning ? t.scanningBtn : t.scanBtn}</span>
+                EN
               </button>
-
               <button
-                id="try-demo-wallet-btn"
+                id="lang-pt-btn"
                 type="button"
-                className="btn-secondary"
-                disabled={scanning}
-                onClick={() => {
-                  setWalletInput(demoWallet);
-                  executeScan(demoWallet);
-                }}
+                className={`lang-btn ${lang === "pt" ? "active" : ""}`}
+                onClick={() => handleLangChange("pt")}
               >
-                <Sparkles size={15} />
-                <span>{t.tryDemoBtn}</span>
+                PT
               </button>
             </div>
 
-            <div className="scanner-footer">
-              <span>{t.clusterHint}</span>
-              <span className="mono">Demo: {shortenAddress(demoWallet)}</span>
-            </div>
-          </div>
-
-          {error && (
-            <div id="scan-error-banner" className="error-banner" role="alert">
-              {error}
-            </div>
-          )}
-        </section>
-
-        {scanData && (
-          <section className="results-grid" aria-live="polite">
-            {/* Left Column: Health Score + Risk Flags + Metrics + Vault */}
-            <div
-              className="col-5"
-              style={{ display: "flex", flexDirection: "column", gap: 20 }}
+            <a
+              id="download-apk-link"
+              href={apkUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="apk-btn"
             >
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">
-                    <Activity size={16} />
-                    {t.healthTitle}
-                  </span>
-                  <a
-                    href={`https://explorer.solana.com/address/${scanData.walletAddress}${
-                      scanData.cluster === "devnet" ? "?cluster=devnet" : ""
-                    }`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="source-link mono"
-                  >
-                    {shortenAddress(scanData.walletAddress)}
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
+              <Smartphone size={14} />
+              <span>{t.downloadApk}</span>
+              <Download size={13} />
+            </a>
+          </div>
+        </header>
+      </div>
 
-                <div className="gauge-wrap">
-                  <div className="gauge-svg-box">
-                    <svg width="132" height="132" viewBox="0 0 132 132">
-                      <circle
-                        cx="66"
-                        cy="66"
-                        r={gaugeRadius}
-                        fill="none"
-                        stroke="#23293D"
-                        strokeWidth="10"
-                      />
-                      <circle
-                        cx="66"
-                        cy="66"
-                        r={gaugeRadius}
-                        fill="none"
-                        stroke={gaugeColor}
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={gaugeCircumference}
-                        strokeDashoffset={gaugeOffset}
-                        transform="rotate(-90 66 66)"
-                        style={{ transition: "stroke-dashoffset 0.5s ease" }}
-                      />
-                    </svg>
-                    <div className="gauge-center">
-                      <span
-                        className="gauge-score mono"
-                        style={{ color: gaugeColor }}
-                      >
-                        {scanData.healthScore}
-                      </span>
-                      <span className="gauge-max mono">/ 100</span>
-                    </div>
-                  </div>
+      <main className="main-area">
+        {!scanData ? (
+          /* ==========================================
+             LANDING VIEW (Full-Viewport 2-Column Split)
+             ========================================== */
+          <div className="container landing-grid">
+            <section className="landing-left">
+              <div className="landing-hero">
+                <div className="eyebrow mono">{t.eyebrow}</div>
+                <h1>{t.heroTitle}</h1>
+                <p className="landing-sub">{t.heroSub}</p>
 
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                  >
-                    <span className={`status-badge status-${scanData.status}`}>
-                      ● {t[scanData.status]}
-                    </span>
-                    <div
-                      className="mono"
-                      style={{ fontSize: "1.35rem", fontWeight: 700 }}
+                <div className="scanner-form">
+                  <div className="scanner-bar">
+                    <input
+                      id="wallet-address-input"
+                      type="text"
+                      className="wallet-input mono"
+                      placeholder={t.placeholder}
+                      value={walletInput}
+                      onChange={(e) => setWalletInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") executeScan();
+                      }}
+                    />
+
+                    <select
+                      id="cluster-select"
+                      className="cluster-select mono"
+                      value={cluster}
+                      onChange={(e) =>
+                        setCluster(e.target.value as SolanaCluster)
+                      }
                     >
-                      {scanData.solBalance.toFixed(4)} SOL
-                    </div>
-                    <span
-                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
+                      <option value="devnet">Devnet</option>
+                      <option value="mainnet-beta">Mainnet</option>
+                    </select>
+
+                    <button
+                      id="scan-wallet-btn"
+                      type="button"
+                      className="btn-primary"
+                      disabled={scanning}
+                      onClick={() => executeScan()}
                     >
-                      {scanData.cluster.toUpperCase()}
-                    </span>
+                      <span>{scanning ? t.scanningBtn : t.scanBtn}</span>
+                      <ArrowRight size={15} />
+                    </button>
                   </div>
-                </div>
 
-                {scanData.riskFlags.length > 0 && (
-                  <div className="risk-flags-wrap">
-                    {scanData.riskFlags.map((flag, i) => (
-                      <span key={i} className="risk-flag-pill">
-                        <span className={`sev-pill sev-${flag.severity}`}>
-                          {flag.code.replace(/_/g, " ")}
-                        </span>
-                        <span
-                          className="mono"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          {flag.value}
-                        </span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="metric-list">
-                  <div className="metric-item">
-                    <div className="metric-label">{t.emptyAtas}</div>
-                    <div className="metric-value mono">
-                      {scanData.emptyAccounts.length}
-                    </div>
-                  </div>
-                  <div className="metric-item">
-                    <div className="metric-label">{t.reclaimableRent}</div>
-                    <div
-                      className="metric-value mono"
-                      style={{
-                        color:
-                          scanData.totalReclaimableSol > 0
-                            ? "var(--sol-green)"
-                            : "var(--text-primary)",
+                  <div className="scanner-meta">
+                    <button
+                      id="try-demo-wallet-btn"
+                      type="button"
+                      className="btn-demo"
+                      disabled={scanning}
+                      onClick={() => {
+                        setWalletInput(demoWallet);
+                        executeScan(demoWallet);
                       }}
                     >
-                      +{scanData.totalReclaimableSol.toFixed(4)} SOL
-                    </div>
-                  </div>
-                  <div className="metric-item">
-                    <div className="metric-label">{t.activeTokens}</div>
-                    <div className="metric-value mono">
-                      {scanData.activeTokenAccountsCount}
-                    </div>
-                  </div>
-                  <div className="metric-item">
-                    <div className="metric-label">Delegations</div>
-                    <div className="metric-value mono">
-                      {scanData.delegatedAccountsCount}
-                    </div>
+                      <Play size={12} />
+                      <span>{t.tryDemoBtn}</span>
+                      <span className="mono" style={{ color: "var(--ink-muted)" }}>
+                        {shortenAddress(demoWallet)}
+                      </span>
+                    </button>
+
+                    <span className="scanner-hint">{t.clusterHint}</span>
                   </div>
                 </div>
 
-                <div
-                  className={`reclaim-callout ${
-                    scanData.emptyAccounts.length === 0
-                      ? "reclaim-callout-clean"
-                      : ""
-                  }`}
+                {error && (
+                  <div
+                    id="scan-error-banner"
+                    className="error-banner"
+                    role="alert"
+                  >
+                    {error}
+                  </div>
+                )}
+              </div>
+
+              <div className="spec-strip">
+                {t.specs.map((item) => (
+                  <div key={item.num} className="spec-item">
+                    <span className="spec-num mono">{item.num}</span>
+                    <div className="spec-title">{item.title}</div>
+                    <p className="spec-desc">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <aside className="landing-right">
+              <div className="ledger-box">
+                <div className="ledger-head">
+                  <span className="ledger-head-title mono">{t.ledgerTitle}</span>
+                  <span className="mono" style={{ fontSize: "0.72rem", color: "var(--ink-muted)" }}>
+                    SOLANA RPC
+                  </span>
+                </div>
+                <div className="ledger-rows">
+                  {t.ledgerRows.map((row) => (
+                    <div key={row.key} className="ledger-row">
+                      <div>
+                        <div className="ledger-key">{row.key}</div>
+                        <div className="ledger-sub">{row.sub}</div>
+                      </div>
+                      <span className="ledger-val mono">{row.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mobile-callout">
+                <div className="mobile-callout-title">
+                  <Smartphone size={16} />
+                  <span>{t.mobileTitle}</span>
+                </div>
+                <p className="mobile-callout-text">{t.mobileDesc}</p>
+                <a
+                  href={apkUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mobile-callout-link"
                 >
-                  <strong style={{ fontSize: "0.92rem" }}>
-                    {scanData.emptyAccounts.length > 0
-                      ? `${scanData.totalReclaimableSol.toFixed(5)} ${t.lockedFound} (${
-                          scanData.emptyAccounts.length
-                        })`
-                      : t.cleanWallet}
-                  </strong>
-                  <span
-                    style={{
-                      fontSize: "0.81rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {t.mobileActionNote}
-                  </span>
-                </div>
+                  <span>{t.mobileCta}</span>
+                  <ArrowUpRight size={14} />
+                </a>
               </div>
-
-              <div className="panel">
-                <div className="panel-header">
-                  <span className="panel-title">
-                    <Vault size={16} />
-                    {t.vaultTitle}
-                  </span>
-                  <a
-                    href={`https://explorer.solana.com/address/${scanData.vault.pda}${
-                      scanData.cluster === "devnet" ? "?cluster=devnet" : ""
-                    }`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="source-link mono"
-                  >
-                    PDA {shortenAddress(scanData.vault.pda)}
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-
-                {scanData.vault.initialized ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 10,
+            </aside>
+          </div>
+        ) : (
+          /* ==========================================
+             ACTIVE WORKSPACE VIEW (Full-Width Ledger)
+             ========================================== */
+          <div aria-live="polite">
+            {/* Compact Persistent Command Strip */}
+            <div className="command-strip-wrap">
+              <div className="container command-strip">
+                <div className="scanner-bar">
+                  <input
+                    id="wallet-address-input"
+                    type="text"
+                    className="wallet-input mono"
+                    placeholder={t.placeholder}
+                    value={walletInput}
+                    onChange={(e) => setWalletInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") executeScan();
                     }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <strong>{scanData.vault.goalName}</strong>
-                      <span
-                        className="mono"
-                        style={{ color: "var(--sol-green)" }}
-                      >
-                        {scanData.vault.progressPercent}%
-                      </span>
-                    </div>
-                    <div className="progress-track">
-                      <div
-                        className="progress-fill"
-                        style={{ width: `${scanData.vault.progressPercent}%` }}
-                      />
-                    </div>
-                    <div
-                      className="mono"
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      {(scanData.vault.currentLamports / 1e9).toFixed(4)} /{" "}
-                      {(scanData.vault.targetLamports / 1e9).toFixed(4)} SOL
-                    </div>
-                  </div>
-                ) : (
-                  <p
-                    style={{
-                      fontSize: "0.86rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {t.vaultUninitialized}
-                  </p>
-                )}
-              </div>
-            </div>
+                  />
 
-            {/* Right Column: AI Advisor + ElevenLabs Audio + Firecrawl Sources */}
-            <div className="col-7">
-              <div className="panel" style={{ height: "100%" }}>
-                <div className="panel-header">
-                  <span className="panel-title">
-                    <Sparkles size={16} />
-                    {t.advisorTitle}
-                  </span>
+                  <select
+                    id="cluster-select"
+                    className="cluster-select mono"
+                    value={cluster}
+                    onChange={(e) => setCluster(e.target.value as SolanaCluster)}
+                  >
+                    <option value="devnet">Devnet</option>
+                    <option value="mainnet-beta">Mainnet</option>
+                  </select>
+
                   <button
-                    id="refresh-firecrawl-btn"
+                    id="scan-wallet-btn"
                     type="button"
-                    className="btn-secondary"
-                    disabled={analyzing}
-                    onClick={() =>
-                      runAnalysis(scanData, lang, { forceRefreshFirecrawl: true })
-                    }
-                    style={{ padding: "6px 11px", fontSize: "0.78rem" }}
+                    className="btn-primary"
+                    disabled={scanning}
+                    onClick={() => executeScan()}
                   >
-                    <RefreshCw size={13} />
-                    <span>{t.refreshLive}</span>
+                    <span>{scanning ? t.scanningBtn : t.scanBtn}</span>
                   </button>
                 </div>
 
-                {analyzing && !analysis ? (
-                  <p
-                    style={{
-                      color: "var(--text-secondary)",
-                      fontSize: "0.92rem",
-                    }}
-                  >
-                    {t.analyzing}
-                  </p>
-                ) : analysis ? (
-                  <>
-                    <h2 style={{ fontSize: "1.18rem", fontWeight: 600 }}>
-                      {analysis.headline}
-                    </h2>
+                <button
+                  id="try-demo-wallet-btn"
+                  type="button"
+                  className="btn-ghost"
+                  disabled={scanning}
+                  onClick={() => {
+                    setWalletInput(demoWallet);
+                    executeScan(demoWallet);
+                  }}
+                >
+                  {t.tryDemoBtn}
+                </button>
 
-                    <div className="voice-box">
-                      <div className="voice-top">
-                        <button
-                          id="play-voice-briefing-btn"
-                          type="button"
-                          className="voice-btn"
-                          disabled={audioLoading}
-                          onClick={handlePlayBriefing}
-                        >
-                          {isPlaying ? (
-                            <Square size={15} />
-                          ) : (
-                            <Volume2 size={16} />
-                          )}
-                          <span>
-                            {audioLoading
-                              ? t.loadingAudio
-                              : isPlaying
-                                ? t.stopBriefing
-                                : t.playBriefing}
-                          </span>
-                        </button>
-                        <span className="sponsor-tag">
-                          Powered by ElevenLabs Multilingual v2
-                        </span>
-                      </div>
+                <a
+                  href={`https://explorer.solana.com/address/${scanData.walletAddress}${
+                    scanData.cluster === "devnet" ? "?cluster=devnet" : ""
+                  }`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-ghost mono"
+                >
+                  <span>{shortenAddress(scanData.walletAddress)}</span>
+                  <ExternalLink size={12} />
+                </a>
 
-                      <p className="voice-script">“{analysis.voiceScript}”</p>
-                      {usedFallbackSpeech && (
-                        <span
-                          style={{ fontSize: "0.75rem", color: "var(--amber)" }}
-                        >
-                          {t.browserTtsNote}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="insights-stack">
-                      {analysis.insights.map((ins, idx) => (
-                        <div key={idx} className="insight-row">
-                          <div className="insight-head">
-                            <span className={`sev-pill sev-${ins.severity}`}>
-                              {ins.severity}
-                            </span>
-                            <strong style={{ fontSize: "0.92rem" }}>
-                              {ins.title}
-                            </strong>
-                          </div>
-                          <p
-                            style={{
-                              fontSize: "0.86rem",
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            {ins.detail}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="chip-row">
-                      {t.quickQuestions.map((q) => (
-                        <button
-                          key={q}
-                          type="button"
-                          className="question-chip"
-                          disabled={analyzing}
-                          onClick={() =>
-                            runAnalysis(scanData, lang, { userQuestion: q })
-                          }
-                        >
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="sources-bar">
-                      <span
-                        style={{
-                          fontSize: "0.78rem",
-                          fontWeight: 600,
-                          color: "var(--text-muted)",
-                        }}
-                      >
-                        {t.liveSources}
-                      </span>
-                      <div className="source-links">
-                        {analysis.sources.map((src) => (
-                          <a
-                            key={src.slug}
-                            href={src.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="source-link"
-                          >
-                            <span>{src.name}</span>
-                            <ExternalLink size={12} />
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={handleReset}
+                >
+                  <RotateCcw size={13} />
+                  <span>{t.newScan}</span>
+                </button>
               </div>
             </div>
 
-            {/* Full-width Empty SPL Accounts Table if detected */}
-            {scanData.emptyAccounts.length > 0 && (
-              <div className="col-12">
-                <div className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">{t.emptyTableTitle}</span>
-                    <span
-                      className="mono"
-                      style={{ fontSize: "0.82rem", color: "var(--sol-green)" }}
-                    >
-                      {scanData.emptyAccounts.length} ATAs · +
-                      {scanData.totalReclaimableSol.toFixed(6)} SOL
-                    </span>
-                  </div>
-                  <div style={{ overflowX: "auto" }}>
-                    <table className="ata-table">
-                      <thead>
-                        <tr>
-                          <th>ATA Account</th>
-                          <th>Token Mint</th>
-                          <th>Program</th>
-                          <th>Refundable Rent</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scanData.emptyAccounts.map((acc) => (
-                          <tr key={acc.pubkey}>
-                            <td className="mono">{shortenAddress(acc.pubkey)}</td>
-                            <td className="mono">{shortenAddress(acc.mint)}</td>
-                            <td className="mono">
-                              {acc.programId.startsWith("Tokenz")
-                                ? "Token-2022"
-                                : "SPL Token"}
-                            </td>
-                            <td
-                              className="mono"
-                              style={{ color: "var(--sol-green)" }}
-                            >
-                              +{(acc.reclaimableLamports / 1e9).toFixed(6)} SOL
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+            {error && (
+              <div className="container">
+                <div
+                  id="scan-error-banner"
+                  className="error-banner"
+                  role="alert"
+                >
+                  {error}
                 </div>
               </div>
             )}
 
-            {/* Full-width Supabase History & Health Score Evolution Panel */}
-            {historyData && (
-              <div className="col-12">
-                <div className="panel">
-                  <div className="panel-header">
-                    <span className="panel-title">
-                      <Clock size={16} />
-                      {t.historyTitle}
-                    </span>
-                  </div>
-
-                  <div className="history-kpis">
-                    <div className="metric-item">
-                      <div className="metric-label">{t.totalReclaimed}</div>
-                      <div
-                        className="metric-value mono"
-                        style={{ color: "var(--sol-green)" }}
+            {/* Full-Width 5-Column KPI Strip */}
+            <div className="kpi-strip-wrap">
+              <div className="container kpi-strip">
+                <div className="kpi-cell">
+                  <div className="score-inline">
+                    <div className="score-ring-box">
+                      <svg width="52" height="52" viewBox="0 0 52 52">
+                        <circle
+                          cx="26"
+                          cy="26"
+                          r={ringRadius}
+                          fill="none"
+                          stroke="#e6e3da"
+                          strokeWidth="4.5"
+                        />
+                        <circle
+                          cx="26"
+                          cy="26"
+                          r={ringRadius}
+                          fill="none"
+                          stroke={scoreColor}
+                          strokeWidth="4.5"
+                          strokeLinecap="round"
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={ringOffset}
+                          transform="rotate(-90 26 26)"
+                          style={{ transition: "stroke-dashoffset 0.45s ease" }}
+                        />
+                      </svg>
+                      <span
+                        className="score-ring-num mono"
+                        style={{ color: scoreColor }}
                       >
-                        +{historyData.totalSolReclaimed.toFixed(5)} SOL
-                      </div>
+                        {scanData.healthScore}
+                      </span>
                     </div>
-                    <div className="metric-item">
-                      <div className="metric-label">{t.accountsClosed}</div>
-                      <div className="metric-value mono">
-                        {historyData.totalAccountsClosed}
-                      </div>
-                    </div>
-                    <div className="metric-item">
-                      <div className="metric-label">{t.scansRun}</div>
-                      <div className="metric-value mono">
-                        {historyData.scansCount}
-                      </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span className="kpi-label">{t.healthScore}</span>
+                      <span className={`status-tag status-${scanData.status}`}>
+                        {t[scanData.status]}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {orderedSnapshots.length > 0 && (
-                    <div className="score-bars">
-                      {orderedSnapshots.map((snap) => {
-                        const barColor =
-                          snap.healthScore >= 80
-                            ? "#14F195"
-                            : snap.healthScore >= 50
-                              ? "#F59E0B"
-                              : "#EF4444";
-                        return (
-                          <div key={snap.id} className="score-bar-col">
-                            <span
-                              className="mono"
-                              style={{
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
-                                color: barColor,
-                              }}
-                            >
-                              {snap.healthScore}
+                <div className="kpi-cell">
+                  <span className="kpi-label">{t.solBalance}</span>
+                  <span className="kpi-value mono">
+                    {scanData.solBalance.toFixed(4)} SOL
+                  </span>
+                  <span className="kpi-sub mono">
+                    {scanData.cluster.toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="kpi-cell">
+                  <span className="kpi-label">{t.reclaimableRent}</span>
+                  <span
+                    className={`kpi-value mono ${
+                      scanData.totalReclaimableSol > 0 ? "accent" : ""
+                    }`}
+                  >
+                    +{scanData.totalReclaimableSol.toFixed(4)} SOL
+                  </span>
+                  <span className="kpi-sub mono">
+                    {scanData.emptyAccounts.length} ATAs
+                  </span>
+                </div>
+
+                <div className="kpi-cell">
+                  <span className="kpi-label">{t.emptyAtas}</span>
+                  <span className="kpi-value mono">
+                    {scanData.emptyAccounts.length}
+                  </span>
+                  <span className="kpi-sub">SPL / Token-2022</span>
+                </div>
+
+                <div className="kpi-cell">
+                  <span className="kpi-label">{t.activeTokens}</span>
+                  <span className="kpi-value mono">
+                    {scanData.activeTokenAccountsCount}
+                  </span>
+                  <span className="kpi-sub mono">
+                    {scanData.delegatedAccountsCount} {t.delegations}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Asymmetric 2-Column Main Workspace */}
+            <div className="container workspace-grid">
+              {/* Primary Left Column: Advisor, Audio Briefing, Insights, Empty ATAs Table */}
+              <div className="workspace-primary">
+                <section className="section-block">
+                  <div className="section-head">
+                    <span className="section-title">{t.advisorTitle}</span>
+                    <button
+                      id="refresh-firecrawl-btn"
+                      type="button"
+                      className="btn-ghost"
+                      disabled={analyzing}
+                      onClick={() =>
+                        runAnalysis(scanData, lang, {
+                          forceRefreshFirecrawl: true,
+                        })
+                      }
+                      style={{ padding: "5px 10px", fontSize: "0.76rem" }}
+                    >
+                      <RefreshCw size={12} />
+                      <span>{t.refreshLive}</span>
+                    </button>
+                  </div>
+
+                  {analyzing && !analysis ? (
+                    <p className="muted-note">{t.analyzing}</p>
+                  ) : analysis ? (
+                    <>
+                      <h1 className="advisor-headline">{analysis.headline}</h1>
+
+                      <div className="voice-card">
+                        <div className="voice-controls">
+                          <button
+                            id="play-voice-briefing-btn"
+                            type="button"
+                            className="voice-btn"
+                            disabled={audioLoading}
+                            onClick={handlePlayBriefing}
+                          >
+                            {isPlaying ? (
+                              <Square size={14} />
+                            ) : (
+                              <Volume2 size={15} />
+                            )}
+                            <span>
+                              {audioLoading
+                                ? t.loadingAudio
+                                : isPlaying
+                                  ? t.stopBriefing
+                                  : t.playBriefing}
                             </span>
-                            <div className="score-bar-track">
-                              <div
-                                className="score-bar-fill"
-                                style={{
-                                  height: `${Math.max(8, snap.healthScore)}%`,
-                                  backgroundColor: barColor,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          </button>
 
-                  {historyData.events.length > 0 ? (
-                    <div className="source-links">
-                      {historyData.events.map((ev) => (
-                        <a
-                          key={ev.id}
-                          href={ev.explorerUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="source-link mono"
-                        >
-                          <span>
-                            {ev.actionType.replace(/_/g, " ").toUpperCase()} ·{" "}
-                            {ev.solAmount.toFixed(4)} SOL
+                          <span className="voice-meta mono">
+                            ElevenLabs Multilingual v2
                           </span>
-                          <ExternalLink size={12} />
-                        </a>
+                        </div>
+
+                        <p className="voice-script">“{analysis.voiceScript}”</p>
+
+                        {usedFallbackSpeech && (
+                          <span
+                            style={{ fontSize: "0.75rem", color: "var(--amber)" }}
+                          >
+                            {t.browserTtsNote}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="insights-list">
+                        {analysis.insights.map((ins, idx) => (
+                          <div key={idx} className="insight-item">
+                            <div className="insight-head">
+                              <span className={`sev-tag sev-${ins.severity}`}>
+                                {ins.severity}
+                              </span>
+                              <span className="insight-title">{ins.title}</span>
+                            </div>
+                            <p className="insight-detail">{ins.detail}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="question-row">
+                        {t.quickQuestions.map((q) => (
+                          <button
+                            key={q}
+                            type="button"
+                            className="question-btn"
+                            disabled={analyzing}
+                            onClick={() =>
+                              runAnalysis(scanData, lang, { userQuestion: q })
+                            }
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+
+                      {analysis.sources.length > 0 && (
+                        <div className="sources-row">
+                          <span className="section-title" style={{ marginRight: 4 }}>
+                            {t.liveSources}:
+                          </span>
+                          {analysis.sources.map((src) => (
+                            <a
+                              key={src.slug}
+                              href={src.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="source-link"
+                            >
+                              <span>{src.name}</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                </section>
+
+                {scanData.emptyAccounts.length > 0 && (
+                  <section className="section-block">
+                    <div className="section-head">
+                      <span className="section-title">{t.emptyTableTitle}</span>
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: "0.78rem",
+                          fontWeight: 600,
+                          color: "var(--accent)",
+                        }}
+                      >
+                        {scanData.emptyAccounts.length} ATAs · +
+                        {scanData.totalReclaimableSol.toFixed(6)} SOL
+                      </span>
+                    </div>
+
+                    <div className="table-wrap">
+                      <table className="ata-table">
+                        <thead>
+                          <tr>
+                            <th>ATA Account</th>
+                            <th>Token Mint</th>
+                            <th>Program</th>
+                            <th>Refundable Rent</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scanData.emptyAccounts.map((acc) => (
+                            <tr key={acc.pubkey}>
+                              <td className="mono">
+                                {shortenAddress(acc.pubkey)}
+                              </td>
+                              <td className="mono">
+                                {shortenAddress(acc.mint)}
+                              </td>
+                              <td className="mono">
+                                {acc.programId.startsWith("Tokenz")
+                                  ? "Token-2022"
+                                  : "SPL Token"}
+                              </td>
+                              <td
+                                className="mono"
+                                style={{
+                                  color: "var(--accent)",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                +{(acc.reclaimableLamports / 1e9).toFixed(6)} SOL
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              {/* Right Column: Rent Callout + Risk Flags + Anchor Vault + History */}
+              <aside className="workspace-aside">
+                <section className="section-block">
+                  <div className="section-head">
+                    <span className="section-title">{t.reclaimSection}</span>
+                  </div>
+
+                  <div
+                    className={`reclaim-strip ${
+                      scanData.emptyAccounts.length === 0 ? "clean" : ""
+                    }`}
+                  >
+                    <strong>
+                      {scanData.emptyAccounts.length > 0
+                        ? `${scanData.totalReclaimableSol.toFixed(5)} ${t.lockedFound} (${
+                            scanData.emptyAccounts.length
+                          })`
+                        : t.cleanWallet}
+                    </strong>
+                    <p>{t.mobileActionNote}</p>
+                  </div>
+
+                  {scanData.riskFlags.length > 0 && (
+                    <div className="flags-list">
+                      {scanData.riskFlags.map((flag, i) => (
+                        <span key={i} className="flag-chip">
+                          <span className={`sev-tag sev-${flag.severity}`}>
+                            {flag.code.replace(/_/g, " ")}
+                          </span>
+                          <span
+                            className="mono"
+                            style={{ color: "var(--ink-secondary)" }}
+                          >
+                            {flag.value}
+                          </span>
+                        </span>
                       ))}
                     </div>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: "0.82rem",
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {t.noEventsYet}
-                    </span>
                   )}
-                </div>
-              </div>
-            )}
-          </section>
+                </section>
+
+                <section className="section-block">
+                  <div className="section-head">
+                    <span className="section-title">
+                      <Vault size={13} />
+                      {t.vaultTitle}
+                    </span>
+                    <a
+                      href={`https://explorer.solana.com/address/${scanData.vault.pda}${
+                        scanData.cluster === "devnet" ? "?cluster=devnet" : ""
+                      }`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="source-link mono"
+                    >
+                      PDA {shortenAddress(scanData.vault.pda)}
+                      <ExternalLink size={11} />
+                    </a>
+                  </div>
+
+                  <div className="vault-card">
+                    {scanData.vault.initialized ? (
+                      <>
+                        <div className="vault-top">
+                          <strong style={{ fontSize: "0.94rem" }}>
+                            {scanData.vault.goalName}
+                          </strong>
+                          <span
+                            className="mono"
+                            style={{
+                              fontSize: "0.86rem",
+                              fontWeight: 600,
+                              color: "var(--accent)",
+                            }}
+                          >
+                            {scanData.vault.progressPercent}%
+                          </span>
+                        </div>
+                        <div className="progress-track">
+                          <div
+                            className="progress-fill"
+                            style={{
+                              width: `${scanData.vault.progressPercent}%`,
+                            }}
+                          />
+                        </div>
+                        <div
+                          className="mono"
+                          style={{
+                            fontSize: "0.82rem",
+                            color: "var(--ink-secondary)",
+                          }}
+                        >
+                          {(scanData.vault.currentLamports / 1e9).toFixed(4)} /{" "}
+                          {(scanData.vault.targetLamports / 1e9).toFixed(4)} SOL
+                        </div>
+                      </>
+                    ) : (
+                      <p className="muted-note">{t.vaultUninitialized}</p>
+                    )}
+                  </div>
+                </section>
+
+                {historyData && (
+                  <section className="section-block">
+                    <div className="section-head">
+                      <span className="section-title">
+                        <Clock size={13} />
+                        {t.historyTitle}
+                      </span>
+                    </div>
+
+                    <div className="history-grid">
+                      <div className="history-stat">
+                        <div className="history-stat-label">
+                          {t.totalReclaimed}
+                        </div>
+                        <div
+                          className="history-stat-val mono"
+                          style={{ color: "var(--accent)" }}
+                        >
+                          +{historyData.totalSolReclaimed.toFixed(4)}
+                        </div>
+                      </div>
+                      <div className="history-stat">
+                        <div className="history-stat-label">
+                          {t.accountsClosed}
+                        </div>
+                        <div className="history-stat-val mono">
+                          {historyData.totalAccountsClosed}
+                        </div>
+                      </div>
+                      <div className="history-stat">
+                        <div className="history-stat-label">{t.scansRun}</div>
+                        <div className="history-stat-val mono">
+                          {historyData.scansCount}
+                        </div>
+                      </div>
+                    </div>
+
+                    {orderedSnapshots.length > 0 && (
+                      <div className="score-bars">
+                        {orderedSnapshots.map((snap) => {
+                          const barColor =
+                            snap.healthScore >= 80
+                              ? "#0d6e4e"
+                              : snap.healthScore >= 50
+                                ? "#a16207"
+                                : "#b42318";
+                          return (
+                            <div key={snap.id} className="score-bar-col">
+                              <span
+                                className="mono"
+                                style={{
+                                  fontSize: "0.7rem",
+                                  fontWeight: 600,
+                                  color: barColor,
+                                }}
+                              >
+                                {snap.healthScore}
+                              </span>
+                              <div className="score-bar-track">
+                                <div
+                                  className="score-bar-fill"
+                                  style={{
+                                    height: `${Math.max(8, snap.healthScore)}%`,
+                                    backgroundColor: barColor,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {historyData.events.length > 0 ? (
+                      <div className="sources-row" style={{ paddingTop: 0 }}>
+                        {historyData.events.map((ev) => (
+                          <a
+                            key={ev.id}
+                            href={ev.explorerUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="source-link mono"
+                          >
+                            <span>
+                              {ev.actionType.replace(/_/g, " ").toUpperCase()} ·{" "}
+                              {ev.solAmount.toFixed(4)} SOL
+                            </span>
+                            <ExternalLink size={11} />
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="muted-note">{t.noEventsYet}</span>
+                    )}
+                  </section>
+                )}
+              </aside>
+            </div>
+          </div>
         )}
       </main>
     </div>
