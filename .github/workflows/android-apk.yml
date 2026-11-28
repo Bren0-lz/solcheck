@@ -64,7 +64,7 @@ jobs:
           VAR_VAULT_ID: ${{ vars.EXPO_PUBLIC_VAULT_PROGRAM_ID }}
           VAR_RPC_URL: ${{ vars.EXPO_PUBLIC_SOLANA_RPC_URL }}
         run: |
-          API_URL="${INPUT_API_URL:-${VAR_API_URL:-https://solcheck.vercel.app}}"
+          API_URL="${INPUT_API_URL:-${VAR_API_URL:-https://solcheck-mu.vercel.app}}"
           VAULT_ID="${INPUT_VAULT_ID:-${VAR_VAULT_ID:-7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp}}"
           RPC_URL="${VAR_RPC_URL:-https://api.devnet.solana.com}"
           cat <<EOF > .env
@@ -72,6 +72,7 @@ jobs:
           EXPO_PUBLIC_SOLANA_CLUSTER=devnet
           EXPO_PUBLIC_SOLANA_RPC_URL=${RPC_URL}
           EXPO_PUBLIC_VAULT_PROGRAM_ID=${VAULT_ID}
+          EXPO_PUBLIC_DEMO_WALLET=8TKsaw8oz9J9oJqugDpJb8rYCNLLrudFgCo6EyYorsXw
           EOF
 
       - name: Run Expo Android native prebuild

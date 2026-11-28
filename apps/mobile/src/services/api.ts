@@ -12,7 +12,7 @@ import {
 function getApiBaseUrl(): string {
   const raw = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   if (!raw || raw.includes("<")) {
-    return "http://localhost:3000";
+    return "https://solcheck-mu.vercel.app";
   }
   return raw.replace(/\/+$/, "");
 }

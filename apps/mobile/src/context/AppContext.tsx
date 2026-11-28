@@ -28,7 +28,7 @@ import {
 } from "../types/api";
 
 const STORAGE_LANG_KEY = "@solcheck/preferred_lang";
-const DEFAULT_DEMO_WALLET = "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg";
+const DEFAULT_DEMO_WALLET = "8TKsaw8oz9J9oJqugDpJb8rYCNLLrudFgCo6EyYorsXw";
 
 export type VoiceEngineMode = "elevenlabs" | "device";
 

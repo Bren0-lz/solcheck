@@ -11,7 +11,7 @@ const STORAGE_WALLET_ADDRESS_KEY = "@solcheck/wallet_address";
 
 export const APP_IDENTITY = {
   name: "SolCheck",
-  uri: "https://solcheck.vercel.app",
+  uri: "https://solcheck-mu.vercel.app",
   icon: "favicon.ico",
 };
 
