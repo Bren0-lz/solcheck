@@ -2,7 +2,9 @@ import * as crypto from "crypto";
 import { getSupabaseAdmin } from "./supabase";
 import { AppLang, BriefingResponse } from "./types";
 
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel (Multilingual v2)
+// Official ElevenLabs Premade Voice (George — included in Free Tier API, supports eleven_multilingual_v2)
+const DEFAULT_PREMADE_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb";
+const SECONDARY_PREMADE_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"; // Sarah (Premade)
 const TTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const globalTtsCache = globalThis as unknown as {
@@ -21,6 +23,52 @@ export function isElevenLabsConfigured(): boolean {
   return Boolean(key && !key.includes("<") && key.length > 8);
 }
 
+async function callElevenLabsTts(
+  apiKey: string,
+  voiceId: string,
+  text: string
+): Promise<Response> {
+  return fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: "eleven_multilingual_v2",
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
+      }),
+      signal: AbortSignal.timeout(15000),
+    }
+  );
+}
+
+async function discoverFirstPremadeVoiceId(apiKey: string): Promise<string | null> {
+  try {
+    const res = await fetch("https://api.elevenlabs.io/v1/voices", {
+      headers: { "xi-api-key": apiKey },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      voices?: Array<{ voice_id?: string; category?: string }>;
+    };
+    const premade = data.voices?.find(
+      (v) => v.category === "premade" && v.voice_id
+    );
+    return premade?.voice_id ?? data.voices?.[0]?.voice_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function synthesizeVoiceBriefing(
   text: string,
   lang: AppLang
@@ -37,14 +85,14 @@ export async function synthesizeVoiceBriefing(
     );
   }
 
-  const voiceId =
+  const configuredVoiceId =
     lang === "pt"
-      ? process.env.ELEVENLABS_VOICE_ID_PT?.trim() || DEFAULT_VOICE_ID
-      : process.env.ELEVENLABS_VOICE_ID_EN?.trim() || DEFAULT_VOICE_ID;
+      ? process.env.ELEVENLABS_VOICE_ID_PT?.trim() || DEFAULT_PREMADE_VOICE_ID
+      : process.env.ELEVENLABS_VOICE_ID_EN?.trim() || DEFAULT_PREMADE_VOICE_ID;
 
   const hash = crypto
     .createHash("sha256")
-    .update(`${lang}:${voiceId}:${cleanText}`)
+    .update(`${lang}:${cleanText}`)
     .digest("hex")
     .slice(0, 24);
   const cacheSlug = `tts-${hash}`;
@@ -85,26 +133,28 @@ export async function synthesizeVoiceBriefing(
     }
   }
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": apiKey,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
-      },
-      body: JSON.stringify({
-        text: cleanText,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
-      signal: AbortSignal.timeout(15000),
+  // 2. Call ElevenLabs; if configuredVoiceId is a Library Voice restricted on Free Tier (HTTP 402),
+  // automatically retry with Free-Tier Premade voices so synthesis succeeds seamlessly!
+  let response = await callElevenLabsTts(apiKey, configuredVoiceId, cleanText);
+
+  if (response.status === 402) {
+    const fallbackCandidates = [
+      DEFAULT_PREMADE_VOICE_ID,
+      SECONDARY_PREMADE_VOICE_ID,
+    ].filter((id) => id !== configuredVoiceId);
+
+    for (const candidateId of fallbackCandidates) {
+      response = await callElevenLabsTts(apiKey, candidateId, cleanText);
+      if (response.ok) break;
     }
-  );
+
+    if (!response.ok && response.status === 402) {
+      const discoveredId = await discoverFirstPremadeVoiceId(apiKey);
+      if (discoveredId) {
+        response = await callElevenLabsTts(apiKey, discoveredId, cleanText);
+      }
+    }
+  }
 
   if (!response.ok) {
     const errBody = await response.text().catch(() => "");

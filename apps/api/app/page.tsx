@@ -24,8 +24,8 @@ import type {
   SolanaCluster,
 } from "@/lib/types";
 
-// Valid Solana Devnet address fallback if NEXT_PUBLIC_DEMO_WALLET is not yet set
-const FALLBACK_DEMO_WALLET = "vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg";
+// Official Solana Devnet Demo Wallet fallback if NEXT_PUBLIC_DEMO_WALLET is not set
+const FALLBACK_DEMO_WALLET = "8TKsaw8oz9J9oJqugDpJb8rYCNLLrudFgCo6EyYorsXw";
 
 const COPY = {
   en: {

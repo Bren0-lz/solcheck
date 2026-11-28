@@ -3,8 +3,10 @@
 [![SolCheck CI](https://github.com/Bren0-lz/solcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/Bren0-lz/solcheck/actions/workflows/ci.yml)
 [![Build Android APK](https://github.com/Bren0-lz/solcheck/actions/workflows/android-apk.yml/badge.svg)](https://github.com/Bren0-lz/solcheck/actions/workflows/android-apk.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-14F195.svg)](./LICENSE)
-[![Solana Devnet](https://img.shields.io/badge/Solana-Devnet-9945FF.svg)](https://explorer.solana.com/?cluster=devnet)
+[![Solana Devnet](https://img.shields.io/badge/Solana-Devnet-9945FF.svg)](https://explorer.solana.com/address/7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp?cluster=devnet)
 [![Solana Mobile](https://img.shields.io/badge/Solana_Mobile-MWA_%2F_Seeker-14F195.svg)](https://solanamobile.com/)
+
+**Live Web Preview & API:** [https://solcheck-mu.vercel.app](https://solcheck-mu.vercel.app) · **Anchor Program ID (Devnet):** [`7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp`](https://explorer.solana.com/address/7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp?cluster=devnet) · **Android APK:** [GitHub Releases](https://github.com/Bren0-lz/solcheck/releases/latest)
 
 > **One-line pitch:** SolCheck is a non-custodial AI financial advisor in your pocket for Solana wallets: it runs an instant on-chain wallet X-Ray, explains your wallet health in natural 30-second audio (**ElevenLabs**) grounded in live protocol documentation (**Firecrawl**), reclaims SOL locked inside empty SPL token accounts in one tap, and routes recovered value into an on-chain Savings Goal Vault (**Anchor/Rust** + **Supabase**).
 
