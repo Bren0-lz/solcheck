@@ -38,8 +38,12 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Preinstalled Android SDK Licenses
+        run: |
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=${ANDROID_HOME}" >> "$GITHUB_ENV"
+          SDK_MANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager | sort -V | tail -n 1)
+          yes | "$SDK_MANAGER" --licenses > /dev/null || true
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -79,11 +83,17 @@ jobs:
         working-directory: apps/mobile
         env:
           CI: "1"
-        run: npx expo prebuild --platform android --clean
+        run: |
+          npx expo prebuild --platform android --clean
+          echo "sdk.dir=${ANDROID_HOME}" > android/local.properties
 
       - name: Build release Android APK with Gradle
         working-directory: apps/mobile/android
-        run: ./gradlew assembleRelease --no-daemon
+        env:
+          ORG_GRADLE_PROJECT_reactNativeArchitectures: "arm64-v8a,armeabi-v7a,x86_64"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
 
       - name: Copy APK artifact
         run: |
