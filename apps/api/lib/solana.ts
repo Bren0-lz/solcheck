@@ -14,6 +14,8 @@ import {
 } from "./types";
 
 const SYSTEM_PLACEHOLDER_ID = "11111111111111111111111111111111";
+const DEFAULT_DEVNET_VAULT_PROGRAM_ID =
+  "7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp";
 const VAULT_ACCOUNT_DISCRIMINATOR = Buffer.from([
   230, 251, 241, 83, 139, 202, 93, 28,
 ]);
@@ -38,11 +40,12 @@ export function getConnection(cluster: SolanaCluster = "devnet"): Connection {
 
 export function getVaultProgramId(): PublicKey | null {
   const raw = process.env.SOLCHECK_VAULT_PROGRAM_ID?.trim();
-  if (!raw || raw === SYSTEM_PLACEHOLDER_ID || raw.includes("<")) {
-    return null;
-  }
+  const candidate =
+    !raw || raw === SYSTEM_PLACEHOLDER_ID || raw.includes("<")
+      ? DEFAULT_DEVNET_VAULT_PROGRAM_ID
+      : raw;
   try {
-    return new PublicKey(raw);
+    return new PublicKey(candidate);
   } catch {
     return null;
   }

@@ -1,5 +1,5 @@
 {
-  "address": "11111111111111111111111111111111",
+  "address": "7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp",
   "metadata": {
     "name": "solcheck_vault",
     "version": "0.1.0",
@@ -8,25 +8,70 @@
   "instructions": [
     {
       "name": "initialize_vault",
-      "discriminator": [48, 191, 163, 44, 71, 129, 63, 164]
+      "discriminator": [
+        48,
+        191,
+        163,
+        44,
+        71,
+        129,
+        63,
+        164
+      ]
     },
     {
       "name": "deposit",
-      "discriminator": [242, 35, 198, 137, 82, 225, 242, 182]
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ]
     },
     {
       "name": "withdraw",
-      "discriminator": [183, 18, 70, 156, 148, 109, 161, 34]
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ]
     },
     {
       "name": "update_goal",
-      "discriminator": [143, 149, 87, 239, 70, 114, 214, 221]
+      "discriminator": [
+        143,
+        149,
+        87,
+        239,
+        70,
+        114,
+        214,
+        221
+      ]
     }
   ],
   "accounts": [
     {
       "name": "VaultAccount",
-      "discriminator": [230, 251, 241, 83, 139, 202, 93, 28]
+      "discriminator": [
+        230,
+        251,
+        241,
+        83,
+        139,
+        202,
+        93,
+        28
+      ]
     }
   ]
 }

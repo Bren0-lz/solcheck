@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 
 // Replace with the Program ID generated upon deployment in Solana Playground (beta.solpg.io)
-declare_id!("11111111111111111111111111111111");
+declare_id!("7RCowC83nUELZmnPxC9PDZZpDAKprF5GGtuRnqc913Gp");
 
 #[program]
 pub mod solcheck_vault {
