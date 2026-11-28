@@ -3,6 +3,7 @@ import { ExternalLink, RefreshCw } from "lucide-react-native";
 import React from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -42,10 +43,18 @@ export default function AdvisorScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isAnalyzing}
+            onRefresh={() => refreshAnalysis()}
+            tintColor={COLORS.solanaGreen}
+            colors={[COLORS.solanaGreen]}
+            progressBackgroundColor={COLORS.bgCard}
+          />
+        }
       >
         <Text style={styles.screenTitle}>{t.advisor.title}</Text>
 
-        {/* ElevenLabs Voice Briefing Player */}
         <VoicePlayer
           title={t.advisor.voiceTitle}
           poweredByLabel={t.advisor.poweredByEleven}
@@ -67,7 +76,6 @@ export default function AdvisorScreen() {
           <>
             <Text style={styles.headline}>{analysis.headline}</Text>
 
-            {/* Prioritized Insights */}
             <Text style={styles.sectionLabel}>{t.advisor.insightsTitle}</Text>
             <View style={styles.stack}>
               {analysis.insights.map((ins, idx) => {
@@ -100,7 +108,6 @@ export default function AdvisorScreen() {
               })}
             </View>
 
-            {/* Quick Question Chips */}
             <Text style={styles.sectionLabel}>
               {t.advisor.quickQuestionsTitle}
             </Text>
@@ -117,7 +124,6 @@ export default function AdvisorScreen() {
               ))}
             </View>
 
-            {/* Firecrawl Live Sources Transparency Section */}
             <View style={styles.sourcesCard}>
               <View style={styles.sourcesHeader}>
                 <Text style={styles.sourcesTitle}>

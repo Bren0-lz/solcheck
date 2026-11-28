@@ -3,6 +3,7 @@ import { ExternalLink, LogOut, RefreshCw } from "lucide-react-native";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -48,6 +49,15 @@ export default function HistoryScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoadingHistory}
+            onRefresh={() => refreshHistory()}
+            tintColor={COLORS.solanaGreen}
+            colors={[COLORS.solanaGreen]}
+            progressBackgroundColor={COLORS.bgCard}
+          />
+        }
       >
         <View style={styles.headerRow}>
           <Text style={styles.screenTitle}>{t.history.title}</Text>
@@ -64,7 +74,6 @@ export default function HistoryScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Cumulative KPIs */}
         <View style={styles.kpiRow}>
           <View style={styles.kpiCard}>
             <Text style={styles.kpiLabel}>{t.history.totalReclaimed}</Text>
@@ -84,7 +93,6 @@ export default function HistoryScreen() {
           </View>
         </View>
 
-        {/* Health Score Evolution Bar Chart */}
         {orderedSnapshots.length > 0 && (
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t.history.scoreEvolution}</Text>
@@ -119,7 +127,6 @@ export default function HistoryScreen() {
           </View>
         )}
 
-        {/* Verifiable On-Chain Transactions Log */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t.history.txLogTitle}</Text>
           {!history || history.events.length === 0 ? (
@@ -149,7 +156,6 @@ export default function HistoryScreen() {
           )}
         </View>
 
-        {/* Quick Settings: Language & Disconnect */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t.history.languageLabel}</Text>
           <View style={styles.langRow}>

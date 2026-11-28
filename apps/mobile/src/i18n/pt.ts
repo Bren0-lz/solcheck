@@ -5,6 +5,13 @@ export const pt: Dictionary = {
   appSubtitle: "Consultor de IA & Resgate de Rent na Solana",
   connectBtn: "Conectar Carteira (Seeker / Phantom)",
   connectingBtn: "Conectando...",
+  tryDemoReadOnly: "Inspecionar Carteira Demo (Leitura)",
+  watchCustomPlaceholder: "Ou cole qualquer carteira Solana Base58...",
+  watchBtn: "Ver",
+  watchOnlyBadge: "LEITURA",
+  watchOnlySignHint:
+    "Modo somente leitura. Conecte via Seeker / Phantom MWA para assinar transações on-chain.",
+  connectToSignBtn: "Conectar Carteira para Assinar",
   disconnectBtn: "Desconectar Carteira",
   devnetBadge: "Solana Devnet",
   tabs: {
@@ -54,6 +61,9 @@ export const pt: Dictionary = {
   vault: {
     reclaimSectionTitle: "Contas SPL Vazias (Resgate de Rent)",
     selectBatchHint: "Máximo de 10 contas por transação atômica",
+    batchSelected: "{selected}/{max} selecionadas",
+    selectMaxBtn: "Selecionar 10",
+    clearSelectionBtn: "Limpar",
     noEmptyAccounts: "Sua carteira tem 0 contas SPL vazias para fechar.",
     reclaimOnlyBtn: "Resgatar {sol} SOL na Carteira",
     reclaimAndVaultBtn: "Resgatar & Guardar no Cofre",
